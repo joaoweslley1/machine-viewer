@@ -1,8 +1,8 @@
 
 import threading
 import socket
-from time import sleep
-from random import randint
+# from time import sleep
+# from random import randint
 import psutil
 
 alias = input('Choose your alias: ')

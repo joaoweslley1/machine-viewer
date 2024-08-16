@@ -1,4 +1,4 @@
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
 import re
@@ -7,8 +7,8 @@ import socket
 import threading
 
 # configurações do servidor
-SERVER_IP = input('Insira o endereço IP do servidor... ')
-PORT = 59000
+# SERVER_IP = input('Insira o endereço IP do servidor... ')
+PORT = 5000
 clients = []
 
 
@@ -18,7 +18,7 @@ app = Flask(__name__)
 CORS(app)
 
 @app.route('/api/devices')
-def device_status():
+def get_device_status():
 
     try:
         conn = sqlite3.connect('../database/main_database.db')
@@ -38,6 +38,74 @@ def device_status():
     conn.close()
 
     return jsonify([cadastro,status],[])
+
+
+@app.route('/api/cadastro_maquina', methods=['POST'])
+def device_register():
+
+    # print(request.remote_addr)
+
+    try:
+        conn = sqlite3.connect('../database/main_database.db')
+    except Exception as e:
+        print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
+        raise e
+    
+    try:
+        data = request.get_json()
+        # id = data['']
+        ip = request.remote_addr
+        clients.append(ip)
+        nome = data['nome']
+
+        cursor = conn.cursor()
+
+        # conn.execute('BEGIN TRANSACTION')
+        cursor.execute('''INSERT 
+            INTO maquina_cadastro (ip, alias, situacao) VALUES (?, ?, ?)''', (ip, nome, 'A'))
+        id = cursor.lastrowid
+
+        cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
+
+        conn.commit()
+        conn.close()
+
+        #print(request.headers['X-Forwarded-for'])
+        #clients.append(request.headers['X-Forwarded-for'])
+
+        return jsonify({'message': f'Usuário {nome} adicionado com sucesso!'}), 201
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
+
+
+@app.route('/api/update_status', methods=['POST'])
+def update_device_status():
+    
+    print('teste')
+
+
+    data = request.get_json()
+
+    client_ip = request.remote_addr
+
+
+    index = clients.index(client_ip)+1
+
+    print(data)
+
+    atualizar_status(
+        index,
+        data['cpu_total'],
+        data['cpu_details'],
+        data['memory']
+    )
+
+    return jsonify({'message': f'Atualizado com sucesso!'}), 201
+    # conn = sqlite3.connect('../database/main_database.db')
+    # cursor = conn.cursor()
+
+        
 
 
 
@@ -115,6 +183,8 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM maquina_cadastro WHERE id = ? AND situacao = 'A'",(id,))
+
+    print(f'cpu_t: {cpu_t}\ncpu_d: {cpu_d}\nmem: {mem}')
 
     if cursor.fetchall() != []:
         cursor.execute("UPDATE maquina_status SET cpu_usage_geral = ?, cpu_usage_detail = ?, memory_usage = ? WHERE id = ?",
@@ -202,7 +272,8 @@ def socket_server():
 if __name__ == '__main__':
     generate_database()
     
-    flask_thread = threading.Thread(target=app.run,kwargs={'port':59001})
-    flask_thread.start()
+    app.run(debug=True)
+    # flask_thread = threading.Thread(target=app.run,kwargs={'port':59001})
+    # flask_thread.start()
 
-    socket_server()
+    # socket_server()
