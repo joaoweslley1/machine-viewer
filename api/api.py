@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
-from os import remove
+from os import remove, path, mkdir, getcwd
 import threading
 import time
 
@@ -125,6 +125,9 @@ def generate_database():
     '''
     Renova o banco de dados
     '''
+
+    if not path.exists('../database/'):
+        mkdir('../database/')
 
     try:
         remove('../database/main_database.db')
