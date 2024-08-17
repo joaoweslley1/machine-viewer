@@ -1,22 +1,33 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
-import re
 from os import remove
-import socket
 import threading
+import time
+
+# constantes
+PORT : int  = 5000
+TIMEOUT : int = 30
 
 # configurações do servidor
-# SERVER_IP = input('Insira o endereço IP do servidor... ')
-PORT = 5000
+server_ip : str = ''
 clients = []
 
-
+# variavel para controle de cliente
+last_update : dict = {}
 
 # configurações do Flask
 app = Flask(__name__)
 CORS(app)
 
+
+
+#########################################################################################################
+# Rotas da API
+#########################################################################################################
+
+
+# respondável por mostrar as máquinas cadastradas no banco
 @app.route('/api/devices')
 def get_device_status():
 
@@ -40,11 +51,9 @@ def get_device_status():
     return jsonify([cadastro,status],[])
 
 
+# responsável por cadastrar as máquinas no banco
 @app.route('/api/cadastro_maquina', methods=['POST'])
 def device_register():
-
-    # print(request.remote_addr)
-
     try:
         conn = sqlite3.connect('../database/main_database.db')
     except Exception as e:
@@ -78,21 +87,16 @@ def device_register():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-
+# responsável por atualizar as informações no banco
 @app.route('/api/update_status', methods=['POST'])
 def update_device_status():
     
-    print('teste')
-
-
     data = request.get_json()
-
     client_ip = request.remote_addr
-
 
     index = clients.index(client_ip)+1
 
-    print(data)
+    last_update[index] = time.time()
 
     atualizar_status(
         index,
@@ -101,18 +105,27 @@ def update_device_status():
         data['memory']
     )
 
-    return jsonify({'message': f'Atualizado com sucesso!'}), 201
-    # conn = sqlite3.connect('../database/main_database.db')
-    # cursor = conn.cursor()
-
-        
-
+    if check_device_status(id) == 'A':
+        return jsonify({'message': f'Atualizado com sucesso!'}), 201
+    else:
+        return jsonify({'message': f'Máquina desconectada.'}), 501
 
 
+#########################################################################################################
+# Fim das Rotas da API
+#########################################################################################################
+
+
+#########################################################################################################
 # funções de administração do banco
-def generate_database():
+#########################################################################################################
 
-    # remove os dados do banco, zerando ele
+
+def generate_database():
+    '''
+    Renova o banco de dados
+    '''
+
     try:
         remove('../database/main_database.db')
     except:
@@ -123,7 +136,7 @@ def generate_database():
     cursor = conn.cursor()
 
     cursor.execute('''
-CREATE TABLE IF NOT EXISTS maquina_cadastro (
+        CREATE TABLE IF NOT EXISTS maquina_cadastro (
                 id INTEGER PRIMARY KEY,
                 ip VARCHAR(15) DEFAULT NULL,
                 alias VARCHAR(255),
@@ -132,7 +145,7 @@ CREATE TABLE IF NOT EXISTS maquina_cadastro (
 
 
     cursor.execute('''
-CREATE TABLE IF NOT EXISTS maquina_status(
+            CREATE TABLE IF NOT EXISTS maquina_status(
                    id INTEGER PRIMARY KEY,
                    cpu_usage_geral REAL DEFAULT 0,
                    cpu_usage_detail VARCHAR(255) DEFAULT 0,
@@ -145,7 +158,21 @@ CREATE TABLE IF NOT EXISTS maquina_status(
     conn.close()
 
 
+def monitor_inactivity():
+    while True:
+        current_time = time.time()
+        for client_id, last_time in list(last_update.items()):
+            if current_time - last_time > TIMEOUT:
+                print(f'Cliente {client_id} atingiu o timeout. Desconectando...')
+                desativar_maquina(client_id)
+                del last_update[client_id]
+            time.sleep(15)
+
+
 def cadastrar_maquina(ip_add:'str',alias:'str'):
+    '''
+    Função que cadastra a máquina no banco
+    '''
 
     try:
         conn = sqlite3.connect('../database/main_database.db')
@@ -157,7 +184,14 @@ def cadastrar_maquina(ip_add:'str',alias:'str'):
     try:
         conn.execute('BEGIN TRANSACTION')
 
-        cursor.execute('INSERT INTO maquina_cadastro (ip, alias, situacao) VALUES (?, ?, ?)', (ip_add, alias, 'A'))
+        cursor.execute('''
+                       INSERT 
+                        INTO maquina_cadastro 
+                        (ip, alias, situacao) 
+                       VALUES (?, ?, ?)
+                       ''', 
+                    (ip_add, alias, 'A'))
+        
         id = cursor.lastrowid
 
         cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
@@ -172,8 +206,13 @@ def cadastrar_maquina(ip_add:'str',alias:'str'):
         conn.close()
 
 
-def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
 
+def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
+    '''
+    Função que atualiza as informações do banco
+    '''
+
+    
     try:
         conn = sqlite3.connect('../database/main_database.db')
     except Exception as e:
@@ -195,6 +234,9 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
     
     conn.close()
 
+    print(check_device_status(id))
+
+
 def desativar_maquina(id:'int'):
     
     try:
@@ -211,69 +253,38 @@ def desativar_maquina(id:'int'):
     conn.commit()
     conn.close()
 
+def check_device_status(id : 'int'):
+
+    conn = sqlite3.connect('../database/main_database.db')
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT situacao FROM maquina_cadastro WHERE id = ?',(id,))
+    
+    status = cursor.fetchall()
+
+    #print(status[0][0])
+
+    conn.close()
+
+    return status[0][0]
 
 
-# funções do servidor
-def receber_do_cliente(message:'str',client):
-
-    index = clients.index(client)+1
-
-    cpu_t = float(re.split(r'\|',message)[0])
-    cpu_d = str(re.split(r'\|',message)[1])
-    mem = float(re.split(r'\|',message)[2])
-
-    atualizar_status(index,cpu_t,cpu_d,mem)
-
-
-def gerir_cliente(client):
-
-    while True:
-        try:
-            message = str(client.recv(1024).decode('utf-8'))
-            if len(message) == 0:
-                index = clients.index(client)+1
-                client.close()
-
-                desativar_maquina(index)
-
-                print(f'{client} desconectou...')
-
-                break
-            else:
-                receber_do_cliente(message,client)
-        
-        except:
-            index = clients.index(client)+1
-            client.close()
-            desativar_maquina(index)
-            break
-
-
-def socket_server():
-
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.bind((SERVER_IP,PORT))
-    server.listen()
-
-    while True:
-        client, address = server.accept()
-        print(f'Conexão estabelecida com {str(address[0])}')
-        client.send('alias?'.encode('utf-8'))
-        alias = client.recv(1024).decode('utf-8')
-        clients.append(client)
-        
-        cadastrar_maquina(str(address[0]),alias)
-
-        client.send('Conectado!'.encode('utf-8'))
-        thread = threading.Thread(target=gerir_cliente, args=(client,))
-        thread.start()
+#####################################################################################################
+# FIM DAS FUNÇÕES DO BANCO
+#####################################################################################################
 
 
 if __name__ == '__main__':
+    
+    monitor_thread = threading.Thread(target=monitor_inactivity, daemon=True)
+    monitor_thread.start()
+
+    if server_ip == '':
+        server_ip = input('Insira o endereço IP do servidor: ')
+        file = open('../configs/ip_addrs','w')
+        file.write(server_ip)
+        file.close()
+
     generate_database()
     
-    app.run(debug=True)
-    # flask_thread = threading.Thread(target=app.run,kwargs={'port':59001})
-    # flask_thread.start()
-
-    # socket_server()
+    app.run(debug=False, host=server_ip)

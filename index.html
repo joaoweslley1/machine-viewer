@@ -252,6 +252,14 @@
     <script>
         // variavel global de controle para saber qual máquina está recebendo detalhamento
         var detailing = null;
+        let server_address;
+
+        fetch('configs/ip_addrs')
+            .then((res) => res.text())
+            .then((text) => {
+                server_address = text;
+            })
+            .catch((e) => console.error(e));
 
         $(document).ready(function(){
             // variavel de controle para ver quantas máquinas possuem cards
@@ -263,7 +271,7 @@
 
             function getData() {
             $.ajax({
-                url: "http://127.0.0.1:5000/api/devices",
+                url: `http://${server_address}:5000/api/devices`,
                 type: "GET",
                 success: function(data) {
 
@@ -355,7 +363,7 @@
         getData() 
 
         // chama a getData() a cada 'x' milissegundos
-        setInterval(getData,100)
+        setInterval(getData,1000)
 
     }); // fim função document.ready
 
