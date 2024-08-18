@@ -105,7 +105,7 @@ def update_device_status():
         data['memory']
     )
 
-    if check_device_status(id) == 'A':
+    if check_device_status(index) == 'A':
         return jsonify({'message': f'Atualizado com sucesso!'}), 201
     else:
         return jsonify({'message': f'Máquina desconectada.'}), 501
