@@ -5,9 +5,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Visualizador de maquinas</title>
     <script src="js/jquery-3.7.1.min.js" type="text/javascript"></script>
-
+    <link rel="stylesheet" href="style/style.css">
     <style>
-
+/* 
         .header {
             width: 100%;
             height: 80px;
@@ -70,7 +70,7 @@
             background-color: #ccc;
             color: black;
             text-align: center;
-            /* Faz com que o elemento não seja selecionável*/
+            /* Faz com que o elemento não seja selecionável /
             -moz-user-select: -moz-none; 
             -khtml-user-select: none;
             -webkit-user-select: none;
@@ -162,7 +162,7 @@
         .detailing-card {
             border: 1px;
             border-radius: 5px;
-            /*padding: 10px;*/
+            /*padding: 10px; /
             margin: auto;
             width: 100%;
             background-color: #ccc;
@@ -193,7 +193,7 @@
             border-radius: 30px;
             background-color: #ccc;
             padding: 30px;
-            /* margin: 40px;  */
+            /* margin: 40px;  /
             text-align: center;
         }
         
@@ -238,7 +238,7 @@
             margin: 0 auto;
             padding: 20px;
             width: 50%;
-            /* Faz com que o elemento não seja selecionável*/
+            /* Faz com que o elemento não seja selecionável /
             -moz-user-select: -moz-none; 
             -khtml-user-select: none;
             -webkit-user-select: none;
@@ -246,355 +246,181 @@
             user-select: none;
         }
 
+*/
+    </style> 
+    
+    <script src="scripts/script.js"></script>
 
-    </style>
-
-    <script>
+    <script type="module">
         // variavel global de controle para saber qual máquina está recebendo detalhamento
         var detailing = null;
+
+        // variavel que armazenará o endereço IP
         let server_address;
 
-        fetch('configs/ip_addrs')
+        // define o endereço IP
+        await fetch('configs/ip_addrs')
             .then((res) => res.text())
             .then((text) => {
                 server_address = text;
             })
             .catch((e) => console.error(e));
+        
+        // variável que armazenará os cards criados,
+        var cards = [];
 
-        $(document).ready(function(){
-            // variavel de controle para ver quantas máquinas possuem cards
-            var cards = [];
+        // variavel de controle para ver quantas máquinas estão trackeadas
+        var totalMachines = 0;
 
-            // variavel de controle para ver quantas máquinas estão trackeadas
-            var totalMachines = 0;
+        // variável que armazenará os dados informados pela API
+        let data;
+        
+        // Função que coleta os dados da API
+        async function getData() {
 
+            const options = {method: 'GET'} 
+            data = await fetch(`http://${server_address}:5000/api/devices`,options)
+            
+            data = await data.json()
 
-            function getData() {
-            $.ajax({
-                url: `http://${server_address}:5000/api/devices`,
-                type: "GET",
-                success: function(data) {
+            const modal = document.getElementById('modalMain')
 
-                    
-                    const modal = document.getElementById('modalMain')
+                if (modal.style.display == 'block') {
+                    updateDetailing(
+                        data[1][detailing]['cpud'],
+                        data[1][detailing]['mem']
+                    )
+                } else {
+                    const dataGrid = document.getElementById('devices-container');
 
-                    if (modal.style.display == 'block') {
-                        updateDetailing(
-                            data[0][1][detailing][2],
-                            data[0][1][detailing][3]
-                        )
-                    } else {
-                        const dataGrid = document.getElementById('devices-container');
-    
-                        //variavel de controle para saber quantas máquinas estão conectadas
-                        var machines = 0;
-    
-                        // verifica quais máquinas ativas existem
-                        data[0][0].forEach(machine => {
-                            if (machine != '' && machine[3] == "A"){
-                                machines++;
-    
-                                // caso a quantidade de máquinas ativas seja diferente das trackeadas, define as rastreada como 
-                                // a quantidade de ativas, forçando a gerar uma nova leva de cards com todas as máquinas
-                                if (totalMachines != machines) {
-                                    totalMachines = machines;
-                                }
-                            };
+                    //variavel de controle para saber quantas máquinas estão conectadas
+                    var machines = 0;
+
+                    // verifica quais máquinas ativas existem
+                    data[0].forEach(machine => {
+                        if (machine != '' && machine['estado'] == "A"){
+                            machines++;
+
+                            // caso a quantidade de máquinas ativas seja diferente das trackeadas, define as rastreada como 
+                            // a quantidade de ativas, forçando a gerar uma nova leva de cards com todas as máquinas
+                            if (totalMachines != machines) {
+                                totalMachines = machines;
+                            }
+                        };
+                    });
+
+                    //verifica se não há nenhuma máquina rastreada
+                    if (machines == 0){ 
+                        dataGrid.replaceChildren(); 
+                    }
+                    // verifica se o elemento principal está vazio
+                    // ou se a quantidade de cards é menor do que a quantidade de máquinas
+                    else if (dataGrid.innerHTML === "" || 
+                        totalMachines != cards.length) {
+                        
+                        // retira todos os cards presentes
+                        dataGrid.replaceChildren();
+
+                        // reinicia a variavel
+                        cards = [];
+
+                        // variável de controle para iteração
+                        var i = 0;
+
+                        // cria um card para cada máquina
+                        data[0].forEach(cadastro => {
+
+                            // verifica se é uma máquina válida (não vazia)
+                            if (cadastro != '') {
+                                if (cadastro['estado'] == "A" && data[1][i]['cpud'] != 0) {
+                                    const card = geraCard(data[1][i]['id'],
+                                    cadastro['nome'],
+                                    data[1][i]['cput'],
+                                    data[1][i]['cpud'],
+                                    data[1][i]['mem']);
+                                    cards.push(card);
+                                };
+                                i++;
+                            }
                         });
                         
-                        console.log(machines)
-
-                        if (machines == 0){ //verifica se não há nenhuma máquina rastreada
-                            dataGrid.replaceChildren(); 
-                        } else if ( // verifica se o elemento principal está vazio
-                            dataGrid.innerHTML === "" || 
-                            totalMachines != cards.length
-                        ) {
-                            // retira todos os cards presentes
-                            dataGrid.replaceChildren();
-                            // reinicia a variavel
-                            cards = [];
-                            // variável de controle para iteração
-                            var i = 0;
-    
-    
-                            data[0][0].forEach(cadastro => {
-                                // verifica se é uma máquina válida (não vazia)
-                                if (cadastro != '') {
-                                    if (cadastro[3] == "A" && data[0][1][i][2] != 0) {
-                                        const card = geraCard(data[0][1][i][0],
-                                        cadastro[2],
-                                        data[0][1][i][1],
-                                        data[0][1][i][2],
-                                        data[0][1][i][3]);
-                                        cards.push(card);
-                                    };
-                                    i++;
-                                }
-                            });
-    
-                                cards.forEach(card => {
-                                    dataGrid.appendChild(card);
-                                })
-                            
-                            detailing = null;
-
-                            } /* fim de caso esteja vazio;*/ else {
-                                var i = 0;
-                                data[0][0].forEach(machine => {
-                                    if (machine != '') {
-                                        if (machine[3] == 'A') {
-                                            updateBar(data[0][1][i][1],'cpu'+machine[0])
-                                            updateBar(data[0][1][i][3],'mem'+machine[0])
-                                        };
-                                    i++;
-                                    };
-                                });
-                            }; // fim do outro caso (o que atualiza)
+                        // adiciona cada card à grid
+                        cards.forEach(card => {
+                            dataGrid.appendChild(card);
+                        });
+                        detailing = null;
                     }
+                    // atualiza os cards
+                    else {
+                        var i = 0;
+                        data[0].forEach(machine => {
+                            if (machine != '') {
+                                if (machine['estado'] == 'A') {
+                                    updateBar(data[1][i]['cput'],'cpu'+machine['id'])
+                                    updateBar(data[1][i]['mem'],'mem'+machine['id'])
+                                };
+                            i++;
+                            };
+                        });
+                    }; // fim do outro caso (o que atualiza)
+                };
 
-                } // fim da função que trabalha com os dados
+            // }
+        }
+                    
 
-            }); // fim função ajax
-
-        }; // fim da getData()
-            
-        // chama a getData() para uma primeira iteração
-        getData() 
+        getData();
 
         // chama a getData() a cada 'x' milissegundos
-        setInterval(getData,1000)
-
-    }); // fim função document.ready
-
-    function geraCard(id,alias,cpuT,cpuD,mem){
-
-        var actualID = id;
-
-        // gerando o card (externo)
-        const card = document.createElement('div');
-        card.classList.add('machine-card');
-        card.id = 'card' + id;
-
-        const link = document.createElement('a')
-        link.id = 'link' + id
-        link.onclick = () => {geraDetailing(
-            id,
-            alias,
-            cpuD,
-            mem
-        ),
-        detailing = actualID-1;
-    }
-
-        card.appendChild(link)
-
-        // gerando cabeçalho do card
-        const header = document.createElement('div');
-        header.classList.add('header');
-
-        // adicionando o texto ao cabeçalho
-        header.appendChild(geraSpan(alias));
-
-        // adicionando header ao card
-        card.appendChild(header);
-
-        // adicionando legenda do CPU ao card
-        card.appendChild(geraSpan('CPU'));
-
-        // adicionando barra do CPU ao card
-        card.appendChild(geraBar(cpuT,'cpu'+id));
-
-        // adicionando legenda do Memória ao card
-        card.appendChild(geraSpan('MEM'));
-
-        // adicionando barra do Memória ao card        
-        card.appendChild(geraBar(mem,'mem'+id));
-
-        return card;
-    }
-
-    function geraSpan(string,stringId = null){
-
-
-        // gera os textos
-        const span = document.createElement('span');
-        span.textContent = string;
-
-        // dá um id ao span se for passado algum id
-        if (stringId != null) {
-            span.id = stringId;
-        }
-
-        return span;
-    }
-
-    function geraBar(value,stringId){
-        // garantindo que o valor será um Float
-        var usage = parseFloat(value);
-
-        // criando a barra
-        const bar = document.createElement('div');
-        bar.classList.add('bar');
-        
-        // criando o texto da barra
-        bar.appendChild(geraSpan(value+'%',stringId));
-        
-        // criando o progresso da barra
-        const progress = document.createElement('div');
-        progress.classList.add('progress');
-        progress.id = stringId + 'Bar';
-
-        // definindo sua %
-        progress.style.width = usage + '%';
-
-        // definindo sua cor
-        progress.style.backgroundColor = defineProgressColor(usage)
-
-        // adicionando o progresso à barra
-        bar.appendChild(progress);
-
-        return bar;
-    }
-
-    function updateBar(value,stringId) {
-        var usage = parseFloat(value);
-        
-        const progress = document.getElementById(stringId+'Bar');
-        progress.style.width = usage + '%';
-
-        progress.style.backgroundColor = defineProgressColor(usage);
-
-        const span = document.getElementById(stringId);
-        span.textContent = value+'%';
-    }
-
-    function defineProgressColor(usage) {
-        if (usage < 31) {
-            return 'greenyellow';
-        } else if (usage < 76) {
-            return 'yellow';
-        } else {
-            return 'red';
-        }
-    }
-
-    window.onclick = function(event) {
-
-        const modal = document.getElementById('modalMain');
-        const modalContent = document.getElementById('modalContent');
-        const detailing = document.getElementById('detailing');
-
-        if (event.target == modal) {
-            detailing.replaceChildren();
-            modal.style.display = 'none';
-            modalContent.replaceChildren();
-        }
-    }
-
-    function geraDetailing(id,alias,cpuD,mem) {
+        setInterval(getData,1000);
 
         
-        // cria o card de detalhamento
-        const detailingCard = document.createElement('div');
-        detailingCard.classList.add('detailing-card');
-        detailingCard.id = 'detailing';
-        
-        // cria o header do card
-        const header = document.createElement('div');
-        header.classList.add('header');
-        
-        // adiciona o nome da máquina ao header
-        header.appendChild(geraSpan(alias));
-        
-        // adicionando o header ao card
-        detailingCard.appendChild(header);
-        
-        // cria parte da CPU
-        const cpuHolder = document.createElement('div');
-        cpuHolder.classList.add('holder');
-        
-        cpuHolder.appendChild(geraSpan('CPU'));
-        
-        // cria uma variável de controle
-        var containers = [];
-        // divide os dados brutos
-        var cpuDetails = cpuD.split(';');
-        // variável de cntrole
-        var i = 0;
-        
-        //
-        cpuDetails.forEach((core) => {
+        // Função responsável por gerar o card exibido
+        function geraCard(id,alias,cpuT,cpuD,mem){
 
+            var actualID = id;
 
-            const container = document.createElement('div');
-            container.classList.add('container');
+            // gerando o card (externo)
+            const card = document.createElement('div');
+            card.classList.add('machine-card');
+            card.id = 'card' + id;
 
-            container.appendChild(geraSpan('CPU-' + i));
+            // faz com que o card seja clicável
+            const link = document.createElement('a')
+            link.id = 'link' + id
+            link.onclick = () => {
+                geraDetailing(id,alias,cpuD,mem);
+                detailing = actualID-1;
+            }
 
-            container.appendChild(geraBar(core,'detailcpu' + i));
+            card.appendChild(link)
 
-            // container.appendChild(geraSpan(core + '%'));
+            // gerando cabeçalho do card
+            const header = document.createElement('div');
+            header.classList.add('header');
 
-            containers.push(container);
-            i++;
-        }
+            // adicionando o texto ao cabeçalho
+            header.appendChild(geraSpan(alias));
 
-    )
+            // adicionando header ao card
+            card.appendChild(header);
+
+            // adicionando legenda do CPU ao card
+            card.appendChild(geraSpan('CPU'));
+
+            // adicionando barra do CPU ao card
+            card.appendChild(geraBar(cpuT,'cpu'+id));
+
+            // adicionando legenda do Memória ao card
+            card.appendChild(geraSpan('MEM'));
+
+            // adicionando barra do Memória ao card        
+            card.appendChild(geraBar(mem,'mem'+id));
+
+            return card;
+            }
+
     
-    //
-    containers.forEach((cont) => {
-        cpuHolder.appendChild(cont);
-    })
-
-    // adicionando o cpuHolder no detailingCard
-    detailingCard.appendChild(cpuHolder);
-
-    // gera o memHolder
-    const memHolder = document.createElement('div');
-    memHolder.classList.add('holder');
-
-    memHolder.appendChild(geraSpan('MEMÓRIA'));
-    
-    // gera o container da memória
-    var container = document.createElement('div');
-    container.classList.add('container');
-    container.appendChild(geraSpan('MEM'));
-    container.appendChild(geraBar(mem,'detailmem'));
-
-    memHolder.appendChild(container);
-
-    detailingCard.appendChild(memHolder);
-
-
-    const modal = document.getElementById('modalMain');
-
-    var modalContent = document.getElementById('modalContent') ;
-
-    //modalContent.replaceChildren();
-    
-    modalContent.appendChild(detailingCard);
-
-    modal.style.display = 'block';
-
-    //return id;
-    }
-
-    function updateDetailing(cpuD,mem){
-
-        var cpuDetails = cpuD.split(';')
-
-        var i = 0;
-
-        cpuDetails.forEach((usage) => {
-            updateBar(usage,'detailcpu'+i);
-            i++
-        })
-
-        updateBar(mem,'detailmem')
-
-    }
-
     </script>
 </head>
 
