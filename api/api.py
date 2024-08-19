@@ -41,14 +41,35 @@ def get_device_status():
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM maquina_cadastro")
-    cadastro = cursor.fetchall()
+    # cadastro = cursor.fetchall()
+    cadastro_list = cursor.fetchall()
+
+
+    # print(cadastro)
+    cadastro = []
+    
+    for c in cadastro_list:
+        cadastro.append({
+            'id' : c[0],
+            'ip' : c[1],
+            'nome' : c[2],
+            'estado' : c[3]
+            })
 
     cursor.execute("SELECT * FROM maquina_status")
-    status = cursor.fetchall()
+    status_list = cursor.fetchall()
 
+    status = []
+    for s in status_list:
+        status.append({
+            'id' : s[0],
+            'cput' : s[1],
+            'cpud' : s[2],
+            'mem' : s[3]
+        })
     conn.close()
 
-    return jsonify([cadastro,status],[])
+    return jsonify(cadastro,status)
 
 
 # responsável por cadastrar as máquinas no banco
@@ -62,7 +83,6 @@ def device_register():
     
     try:
         data = request.get_json()
-        # id = data['']
         ip = request.remote_addr
         clients.append(ip)
         nome = data['nome']
@@ -93,22 +113,33 @@ def update_device_status():
     
     data = request.get_json()
     client_ip = request.remote_addr
+    index = -1
 
-    index = clients.index(client_ip)+1
+    print(clients)
+    for i, ip in enumerate(clients):
+        # print(i,ip)
+        if ip == client_ip:
+            if check_device_status(i+1) == 'A':
+                index = i+1
 
-    last_update[index] = time.time()
+    if index != -1:
 
-    atualizar_status(
-        index,
-        data['cpu_total'],
-        data['cpu_details'],
-        data['memory']
-    )
+        last_update[index] = time.time()
 
-    if check_device_status(id) == 'A':
-        return jsonify({'message': f'Atualizado com sucesso!'}), 201
+        atualizar_status(
+            index,
+            data['cpu_total'],
+            data['cpu_details'],
+            data['memory']
+        )
+
+        if check_device_status(index) == 'A':
+            return jsonify({'message': f'Atualizado com sucesso!'}), 201
+        else:
+            return jsonify({'message': f'Máquina desconectada.'}), 501
+    
     else:
-        return jsonify({'message': f'Máquina desconectada.'}), 501
+        return jsonify({'Não há maquina.'}), 502
 
 
 #########################################################################################################
@@ -165,11 +196,13 @@ def monitor_inactivity():
     while True:
         current_time = time.time()
         for client_id, last_time in list(last_update.items()):
-            if current_time - last_time > TIMEOUT:
-                print(f'Cliente {client_id} atingiu o timeout. Desconectando...')
-                desativar_maquina(client_id)
-                del last_update[client_id]
+            if last_update[client_id] != 'I':
+                if current_time - last_time > TIMEOUT:
+                    print(f'Cliente {client_id} atingiu o timeout. Desconectando...')
+                    desativar_maquina(client_id)
+                    last_update[client_id] = 'I'
             time.sleep(15)
+            print(last_update)
 
 
 def cadastrar_maquina(ip_add:'str',alias:'str'):
@@ -226,7 +259,7 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
 
     cursor.execute("SELECT * FROM maquina_cadastro WHERE id = ? AND situacao = 'A'",(id,))
 
-    print(f'cpu_t: {cpu_t}\ncpu_d: {cpu_d}\nmem: {mem}')
+    # print(f'cpu_t: {cpu_t}\ncpu_d: {cpu_d}\nmem: {mem}')
 
     if cursor.fetchall() != []:
         cursor.execute("UPDATE maquina_status SET cpu_usage_geral = ?, cpu_usage_detail = ?, memory_usage = ? WHERE id = ?",
@@ -237,7 +270,7 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
     
     conn.close()
 
-    print(check_device_status(id))
+    # print(check_device_status(id))
 
 
 def desativar_maquina(id:'int'):
@@ -256,6 +289,7 @@ def desativar_maquina(id:'int'):
     conn.commit()
     conn.close()
 
+
 def check_device_status(id : 'int'):
 
     conn = sqlite3.connect('../database/main_database.db')
@@ -265,11 +299,10 @@ def check_device_status(id : 'int'):
     
     status = cursor.fetchall()
 
-    #print(status[0][0])
-
     conn.close()
 
-    return status[0][0]
+    if status != []:
+        return status[0][0]
 
 
 #####################################################################################################
@@ -279,15 +312,17 @@ def check_device_status(id : 'int'):
 
 if __name__ == '__main__':
     
+    generate_database()
+
     monitor_thread = threading.Thread(target=monitor_inactivity, daemon=True)
     monitor_thread.start()
 
     if server_ip == '':
         server_ip = input('Insira o endereço IP do servidor: ')
+        # server_ip = '192.168.100.25'
         file = open('../configs/ip_addrs','w')
         file.write(server_ip)
         file.close()
 
-    generate_database()
     
     app.run(debug=False, host=server_ip)
