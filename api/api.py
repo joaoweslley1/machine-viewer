@@ -157,8 +157,6 @@ def generate_database():
     Renova o banco de dados
     '''
 
-    if not path.exists('../database/'):
-        mkdir('../database/')
 
     try:
         remove('../database/main_database.db')
@@ -307,6 +305,9 @@ def load_api():
     if not path.exists('../configs/'):
         mkdir('../configs/')
     
+    if not path.exists('../database/'):
+        mkdir('../database/')
+
     generate_database()
 
 if __name__ == '__main__':
