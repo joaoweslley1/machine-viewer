@@ -249,6 +249,12 @@ object {
     margin: 0 auto;
     padding: 20px;
     width: 50%;
+
+    /* centraliza vericalmente o elemento */
+    position: relative;
+    top: 50%;
+    transform: translateY(-50%);
+    
     /* Faz com que o elemento não seja selecionável*/
     -moz-user-select: -moz-none; 
     -khtml-user-select: none;
