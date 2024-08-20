@@ -115,7 +115,7 @@ def update_device_status():
     client_ip = request.remote_addr
     index = -1
 
-    print(clients)
+    # print(clients)
     for i, ip in enumerate(clients):
         # print(i,ip)
         if ip == client_ip:
@@ -200,7 +200,7 @@ def monitor_inactivity():
                     desativar_maquina(client_id)
                     last_update[client_id] = 'I'
             time.sleep(15)
-            print(last_update)
+            # print(last_update)
 
 
 def cadastrar_maquina(ip_add:'str',alias:'str'):
