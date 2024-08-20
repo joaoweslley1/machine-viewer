@@ -68,9 +68,9 @@ object {
 
 .machine-card {
     position: relative;
-    width: 200px;
-    height: 250px;
-    background-color: #ccc;
+    width: 360px;
+    height: 230px;
+    background-color: #fff;
     color: black;
     text-align: center;
     /* Faz com que o elemento não seja selecionável*/
@@ -79,14 +79,22 @@ object {
     -webkit-user-select: none;
     -o-user-select: none;
     user-select: none;
+    border: 5px;
+    border-style: outset;
+    border-color: #aaa;
+    border-radius: 5%;
 }
 
 .machine-card .header {
-    width: 100%;
+    width: 99%;
     height: 50px;
-    background-color: black;
+    background-color: rgb(40, 11, 59);
     color: white;
     position: relative;
+    border: 1px;
+    border-style: double;
+    border-radius: 8px;
+
 }
 
 .machine-card .header span {
