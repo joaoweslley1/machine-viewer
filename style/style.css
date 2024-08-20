@@ -260,7 +260,7 @@ object {
 
 body {
     font-family: "Share Tech Mono", monospace;
-    background-image: url('img/3274406.jpg');
+    background-image: url('../assets/img/background.jpg');
     background-size: cover;
     background-repeat: no-repeat;
     background-position: center center;
