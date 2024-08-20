@@ -3,8 +3,8 @@ import psutil
 from time import sleep
 
 alias = input('Escolha um apelido: ')
-server_ip = input('Digite o endereço IP do servidor: ')
-# server_ip = '172.16.0.87'
+# server_ip = input('Digite o endereço IP do servidor: ')
+server_ip = '192.168.100.25'
 SERVER_PORT = 5000
 
 URL = f'http://{server_ip}:{SERVER_PORT}'
@@ -50,7 +50,7 @@ def client_send():
             message = get_informations()
             response = requests.post(f'{URL}/api/update_status', json=message)
 
-            if response.status_code == 501:
+            if response.status_code > 500:
                 print(response.json())
                 break
         

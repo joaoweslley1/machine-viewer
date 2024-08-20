@@ -1,7 +1,7 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 import sqlite3
-from os import remove, path, mkdir, getcwd
+from os import remove, path, mkdir
 import threading
 import time
 
@@ -242,13 +242,11 @@ def cadastrar_maquina(ip_add:'str',alias:'str'):
         conn.close()
 
 
-
 def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
     '''
     Função que atualiza as informações do banco
     '''
 
-    
     try:
         conn = sqlite3.connect('../database/main_database.db')
     except Exception as e:
@@ -259,8 +257,6 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
 
     cursor.execute("SELECT * FROM maquina_cadastro WHERE id = ? AND situacao = 'A'",(id,))
 
-    # print(f'cpu_t: {cpu_t}\ncpu_d: {cpu_d}\nmem: {mem}')
-
     if cursor.fetchall() != []:
         cursor.execute("UPDATE maquina_status SET cpu_usage_geral = ?, cpu_usage_detail = ?, memory_usage = ? WHERE id = ?",
                        (cpu_t,cpu_d,mem,id))
@@ -269,8 +265,6 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
         print(f'A máquina de id {id} está inativa!')
     
     conn.close()
-
-    # print(check_device_status(id))
 
 
 def desativar_maquina(id:'int'):
