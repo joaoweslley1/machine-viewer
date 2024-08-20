@@ -303,10 +303,15 @@ def check_device_status(id : 'int'):
 # FIM DAS FUNÇÕES DO BANCO
 #####################################################################################################
 
+def load_api():
+    if not path.exists('../configs/'):
+        mkdir('../configs/')
+    
+    generate_database()
 
 if __name__ == '__main__':
     
-    generate_database()
+    load_api()
 
     monitor_thread = threading.Thread(target=monitor_inactivity, daemon=True)
     monitor_thread.start()
