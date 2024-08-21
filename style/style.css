@@ -34,7 +34,7 @@ object {
 .grid-container {
     padding: 5%;
     display: grid;
-    grid-template-columns: repeat(2, auto);
+    grid-template-columns: repeat(1, auto);
     column-gap: 20%;
     row-gap: 100px;
     justify-content: center;
@@ -46,7 +46,7 @@ object {
 .grid-container {
     padding: 100px;
     display: grid;
-    grid-template-columns: repeat(3, auto);
+    grid-template-columns: repeat(2, auto);
     column-gap: 30px;
     row-gap: 100px;
     justify-content: center;
@@ -58,7 +58,7 @@ object {
 .grid-container {
     padding: 100px;
     display: grid;
-    grid-template-columns: 4;
+    grid-template-columns: 3;
     column-gap: 40px;
     row-gap: 100px;
     justify-content: center;

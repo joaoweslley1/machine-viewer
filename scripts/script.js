@@ -1,5 +1,5 @@
 
-function geraSpan(string,stringId = null){
+export const geraSpan = function (string,stringId = null){
 
 
     // gera os textos
@@ -15,7 +15,7 @@ function geraSpan(string,stringId = null){
 }
 
 
-function geraBar(value,stringId){
+export const geraBar = function (value,stringId){
     // garantindo que o valor será um Float
     var usage = parseFloat(value);
 
@@ -44,7 +44,7 @@ function geraBar(value,stringId){
 }
 
 
-function updateBar(value,stringId) {
+export const updateBar = function (value,stringId) {
     var usage = parseFloat(value);
     
     const progress = document.getElementById(stringId+'Bar');
@@ -57,7 +57,7 @@ function updateBar(value,stringId) {
 }
 
 
-function defineProgressColor(usage) {
+export const defineProgressColor = function (usage) {
     if (usage < 31) {
         return 'greenyellow';
     } else if (usage < 76) {
@@ -82,7 +82,7 @@ window.onclick = function(event) {
 }
 
 
-function geraDetailing(id,alias,cpuD,mem) {
+export const geraDetailing = function (id,alias,cpuD,mem) {
 
     
     // cria o card de detalhamento
@@ -171,7 +171,7 @@ function geraDetailing(id,alias,cpuD,mem) {
 }
 
 
-function updateDetailing(cpuD,mem){
+export const updateDetailing = function (cpuD,mem){
 
     var cpuDetails = cpuD.split(';')
 

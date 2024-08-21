@@ -10,8 +10,15 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
-    <script src="scripts/script.js"></script>
     <script type="module">
+
+        import {geraSpan} from "./scripts/script.js";
+        import {geraBar} from "./scripts/script.js";
+        import {updateBar} from "./scripts/script.js";
+        import {defineProgressColor} from "./scripts/script.js";
+        import {geraDetailing} from "./scripts/script.js";
+        import {updateDetailing} from "./scripts/script.js";
+
         // variavel global de controle para saber qual máquina está recebendo detalhamento
         var detailing = null;
 
@@ -187,7 +194,7 @@
 <body>
     
     <div class="header">
-        <object type="image/svg+xml" data="assets/img/logobranco.svg"></object>
+        <!-- <object type="image/svg+xml" data="assets/img/logobranco.svg"></object> -->
         <!-- <img src="assets/img/defaultLogo.svg" alt="logo" height="80px" style="padding-top: 10px; padding-bottom: 10px; padding-left: 20px;"> -->
         <h1>Visualizador de Saúde da Máquina </h1>
     </div>
