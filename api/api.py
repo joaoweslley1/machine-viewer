@@ -86,12 +86,21 @@ def device_register():
         ip = request.remote_addr
         clients.append(ip)
         nome = data['nome']
-
+        so = data['so']
         cursor = conn.cursor()
 
         # conn.execute('BEGIN TRANSACTION')
-        cursor.execute('''INSERT 
-            INTO maquina_cadastro (ip, alias, situacao) VALUES (?, ?, ?)''', (ip, nome, 'A'))
+        cursor.execute('''INSERT INTO maquina_cadastro (
+                        ip, 
+                        alias, 
+                        situacao,
+                       so) VALUES (?, ?, ?, ?)
+                       ''', (
+                           ip, 
+                           nome, 
+                           'A',
+                           so
+                           ))
         id = cursor.lastrowid
 
         cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
@@ -128,9 +137,7 @@ def update_device_status():
 
         atualizar_status(
             index,
-            data['cpu_total'],
-            data['cpu_details'],
-            data['memory']
+            data
         )
 
         if check_device_status(index) == 'A':
@@ -168,20 +175,28 @@ def generate_database():
     cursor = conn.cursor()
 
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS maquina_cadastro (
+            CREATE TABLE IF NOT EXISTS maquina_cadastro (
                 id INTEGER PRIMARY KEY,
                 ip VARCHAR(15) DEFAULT NULL,
                 alias VARCHAR(255),
-                situacao VARCHAR(1) DEFAULT I
-)''')
+                situacao VARCHAR(1) DEFAULT I,
+                so VARCHAR(1))
+            ''')
 
 
     cursor.execute('''
-            CREATE TABLE IF NOT EXISTS maquina_status(
+                CREATE TABLE IF NOT EXISTS maquina_status(
                    id INTEGER PRIMARY KEY,
-                   cpu_usage_geral REAL DEFAULT 0,
-                   cpu_usage_detail VARCHAR(255) DEFAULT 0,
-                   memory_usage REAL DEFAULT 0,
+                   cputot REAL DEFAULT 0,
+                   cpudet VARCHAR(255) DEFAULT 0,
+                   cputmp REAL DEFAULT 0,
+                   memtot REAL DEFAULT 0,
+                   memusa REAL DEFAULT 0,
+                   swptot REAL DEFAULT 0,
+                   swpusa REAL DEFAULT 0,
+                   dsktot REAL DEFAULT 0,
+                   dskusa REAL DEFAULT 0,
+                   dsktmp REAL DEFAULT 0,
                    FOREIGN KEY (id) REFERENCES maquina_cadastro(id)
 )''')
 
@@ -219,9 +234,11 @@ def cadastrar_maquina(ip_add:'str',alias:'str'):
         conn.execute('BEGIN TRANSACTION')
 
         cursor.execute('''
-                       INSERT 
-                        INTO maquina_cadastro 
-                        (ip, alias, situacao) 
+                       INSERT INTO maquina_cadastro (
+                        ip, 
+                        alias, 
+                        situacao,
+                       so) 
                        VALUES (?, ?, ?)
                        ''', 
                     (ip_add, alias, 'A'))
@@ -240,11 +257,10 @@ def cadastrar_maquina(ip_add:'str',alias:'str'):
         conn.close()
 
 
-def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
+def atualizar_status(id, infos: 'dict'):
     '''
     Função que atualiza as informações do banco
     '''
-
     try:
         conn = sqlite3.connect('../database/main_database.db')
     except Exception as e:
@@ -256,8 +272,31 @@ def atualizar_status(id:'int',cpu_t:'float',cpu_d:'str',mem:'float'):
     cursor.execute("SELECT * FROM maquina_cadastro WHERE id = ? AND situacao = 'A'",(id,))
 
     if cursor.fetchall() != []:
-        cursor.execute("UPDATE maquina_status SET cpu_usage_geral = ?, cpu_usage_detail = ?, memory_usage = ? WHERE id = ?",
-                       (cpu_t,cpu_d,mem,id))
+        cursor.execute('''
+                        UPDATE maquina_status SET 
+                        cputot = ?, 
+                        cpudet = ?, 
+                        cputmp = ?,
+                        memtot = ?,
+                        memusa = ?,
+                        swptot = ?,
+                        swpusa = ?,
+                        dsktmp = ?,
+                        dsktot = ?,
+                        dskusa = ?
+                        WHERE id = ?
+                    ''',
+                       (infos['cputot'],
+                        infos['cpudet'],
+                        infos['cputmp'],
+                        infos['memtot'],
+                        infos['memusa'],
+                        infos['swptot'],
+                        infos['swpusa'],
+                        infos['dsktmp'],
+                        infos['dsktot'],
+                        infos['dskusa'],
+                        id))
         conn.commit()
     else:
         print(f'A máquina de id {id} está inativa!')
