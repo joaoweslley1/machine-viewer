@@ -13,21 +13,41 @@ def get_informations():
     """
         Get the information about the machine;
     """
-    while True:
+    # while True:
 
-        cpu = psutil.cpu_percent(interval=1)
-        cputotal = psutil.cpu_percent(interval=1,percpu=True)
-        mem = psutil.virtual_memory()
+        # cpu = psutil.cpu_percent(interval=1)
+        # cputotal = psutil.cpu_percent(interval=1,percpu=True)
+        # mem = psutil.virtual_memory()
         # message = f"{cpu}|{';'.join([str(c) for c in cputotal])}|{mem.percent}"
-        cpu_details = ';'.join([str(c) for c in cputotal])
-        
-        message = {
-            'cpu_total': cpu,
-            'cpu_details': cpu_details,
-            'memory' : mem.percent
-        }
+        # cpu_details = ';'.join([str(c) for c in cputotal])
 
-        return message
+    cputot = psutil.cpu_percent(interval=0)
+    cpudet = ';'.join([str(c) for c in psutil.cpu_percent(interval=0,percpu=True)])
+    cputmp = psutil.sensors_temperatures()["coretemp"][0][1]
+    memtot = round(psutil.virtual_memory().total/(1024**3),2)
+    memusa = round(psutil.virtual_memory().used/(1024**3),2)
+    swptot = round(psutil.swap_memory().total/(1024**3),2)
+    swpusa = round(psutil.swap_memory().used/(1024**3),2)
+    dsktmp = psutil.sensors_temperatures()["nvme"][0][1] # verificar compatibilidade
+    dsktot = round(psutil.disk_usage("/")[0]/(1024**3),2)
+    dskusa = round(psutil.disk_usage("/")[1]/(1024**3),2)
+    
+    message = {
+        'cputot': cputot,
+        'cpudet': cpudet,
+        'cputmp': cputmp,
+        'memtot': memtot,
+        'memusa': memusa,
+        'swptot': swptot,
+        'swpusa': swpusa,
+        'dsktmp': dsktmp,
+        'dsktot': dsktot,
+        'dskusa': dskusa
+    }
+
+    # print(message)
+
+    return message
 
 
 
@@ -61,9 +81,12 @@ def client_send():
 
 if __name__ == '__main__':
 
-    result = first_connect()
+    while True:
+        print(get_informations())
+        sleep(1)
+    # result = first_connect()
 
-    if result.status_code == 201:
-        client_send()
-    else:
-        print(result.json())
+    # if result.status_code == 201:
+    #     client_send()
+    # else:
+    #     print(result.json())
