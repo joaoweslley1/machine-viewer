@@ -7,11 +7,11 @@ import time
 
 # constantes
 PORT : int  = 5000
-TIMEOUT : int = 30
+TIMEOUT : int = 10
 
 # configurações do servidor
 server_ip : str = ''
-clients = []
+clients : list = []
 
 # variavel para controle de cliente
 last_update : dict = {}
@@ -53,7 +53,9 @@ def get_device_status():
             'id' : c[0],
             'ip' : c[1],
             'nome' : c[2],
-            'estado' : c[3]
+            'estado' : c[3],
+            'so': c[4],
+            'exibir': c[5]
             })
 
     cursor.execute("SELECT * FROM maquina_status")
@@ -63,9 +65,16 @@ def get_device_status():
     for s in status_list:
         status.append({
             'id' : s[0],
-            'cput' : s[1],
-            'cpud' : s[2],
-            'mem' : s[3]
+            'cputot' : s[1],
+            'cpudet' : s[2],
+            'cputmp' : s[3],
+            'memtot': s[4],
+            'memusa' : s[5],
+            'swptot' : s[6],
+            'swpusa' : s[7],
+            'dsktot' : s[8],
+            'dskusa' : s[9],
+            'dsktmp' : s[10],
         })
     conn.close()
 
@@ -84,23 +93,32 @@ def device_register():
     try:
         data = request.get_json()
         ip = request.remote_addr
+
+        # if len(clients) != 0:
+        #     last_update[len(clients)] = time.time()
+        # else:
+        #     last_update[1] = time.time()
+
         clients.append(ip)
+
+
+
+
         nome = data['nome']
         so = data['so']
         cursor = conn.cursor()
 
         # conn.execute('BEGIN TRANSACTION')
-        cursor.execute('''INSERT INTO maquina_cadastro (
+        cursor.execute('''
+                       INSERT INTO maquina_cadastro (
                         ip, 
                         alias, 
                         situacao,
-                       so) VALUES (?, ?, ?, ?)
-                       ''', (
-                           ip, 
-                           nome, 
-                           'A',
-                           so
-                           ))
+                        so
+                       ) 
+                       VALUES (?, ?, ?, ?)
+                       ''', 
+                       (ip, nome, 'A', so))
         id = cursor.lastrowid
 
         cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
@@ -108,8 +126,20 @@ def device_register():
         conn.commit()
         conn.close()
 
-        #print(request.headers['X-Forwarded-for'])
-        #clients.append(request.headers['X-Forwarded-for'])
+        last_update[len(clients)] = time.time()
+
+
+        # index = -1
+
+        # # verifica se o cliente está ativo
+        # for i, ip_addr in enumerate(clients):
+        #     if ip_addr == ip:
+        #         if check_device_status(i+1) == 'A':
+        #             index = i+1
+
+        # if index != -1:
+        #     last_update[index] = time.time()
+
 
         return jsonify({'message': f'Usuário {nome} adicionado com sucesso!'}), 201
 
@@ -124,9 +154,8 @@ def update_device_status():
     client_ip = request.remote_addr
     index = -1
 
-    # print(clients)
+    # verifica se o cliente está ativo
     for i, ip in enumerate(clients):
-        # print(i,ip)
         if ip == client_ip:
             if check_device_status(i+1) == 'A':
                 index = i+1
@@ -148,6 +177,18 @@ def update_device_status():
     else:
         return jsonify({'Não há maquina.'}), 502
 
+
+@app.route('/api/desconectar_maquina', methods=['POST'])
+def desconectar_maquina():
+
+    data = request.get_json()
+    id = data['id']
+    desativar_maquina(int(id))
+    desconectar_maquina(int(id))
+    return jsonify({'message': f'Máquina {id} desativada'}), 202
+
+
+# def update_time():
 
 #########################################################################################################
 # Fim das Rotas da API
@@ -180,7 +221,8 @@ def generate_database():
                 ip VARCHAR(15) DEFAULT NULL,
                 alias VARCHAR(255),
                 situacao VARCHAR(1) DEFAULT I,
-                so VARCHAR(1))
+                so VARCHAR(255),
+                exibir VARCHAR(1) DEFAULT S)
             ''')
 
 
@@ -206,6 +248,9 @@ def generate_database():
 
 
 def monitor_inactivity():
+    '''
+    Verifica inatividade das máquinas
+    '''
     while True:
         current_time = time.time()
         for client_id, last_time in list(last_update.items()):
@@ -214,47 +259,46 @@ def monitor_inactivity():
                     print(f'Cliente {client_id} atingiu o timeout. Desconectando...')
                     desativar_maquina(client_id)
                     last_update[client_id] = 'I'
-            time.sleep(15)
-            # print(last_update)
+        time.sleep(15)
 
 
-def cadastrar_maquina(ip_add:'str',alias:'str'):
-    '''
-    Função que cadastra a máquina no banco
-    '''
+# def cadastrar_maquina(ip_add:'str',alias:'str'):
+#     '''
+#     Função que cadastra a máquina no banco
+#     '''
 
-    try:
-        conn = sqlite3.connect('../database/main_database.db')
-    except:
-        conn = sqlite3.connect('database/main_database.db')
+#     try:
+#         conn = sqlite3.connect('../database/main_database.db')
+#     except:
+#         conn = sqlite3.connect('database/main_database.db')
     
-    cursor = conn.cursor()
+#     cursor = conn.cursor()
 
-    try:
-        conn.execute('BEGIN TRANSACTION')
+#     try:
+#         conn.execute('BEGIN TRANSACTION')
 
-        cursor.execute('''
-                       INSERT INTO maquina_cadastro (
-                        ip, 
-                        alias, 
-                        situacao,
-                       so) 
-                       VALUES (?, ?, ?)
-                       ''', 
-                    (ip_add, alias, 'A'))
+#         cursor.execute('''
+#                        INSERT INTO maquina_cadastro (
+#                         ip, 
+#                         alias, 
+#                         situacao,
+#                        so) 
+#                        VALUES (?, ?, ?, ?)
+#                        ''', 
+#                     (ip_add, alias, 'A'))
         
-        id = cursor.lastrowid
+#         id = cursor.lastrowid
 
-        cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
+#         cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
 
-        conn.execute('COMMIT')
+#         conn.execute('COMMIT')
 
-    except Exception as e:
-        conn.execute('ROLLBACK')
-        raise e
+#     except Exception as e:
+#         conn.execute('ROLLBACK')
+#         raise e
     
-    finally:
-        conn.close()
+#     finally:
+#         conn.close()
 
 
 def atualizar_status(id, infos: 'dict'):
@@ -321,6 +365,21 @@ def desativar_maquina(id:'int'):
     conn.close()
 
 
+def desconectar_maquina(id: 'int'):
+    try:
+        conn = sqlite3.connect('../database/main_database.db')
+    except Exception as e:
+        print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
+        raise e
+
+    cursor = conn.cursor()
+
+    cursor.execute('UPDATE maquina_cadastro SET exibir = ? WHERE id = ?',
+                   ('N',id))
+    
+    conn.commit()
+    conn.close()
+
 def check_device_status(id : 'int'):
 
     conn = sqlite3.connect('../database/main_database.db')
@@ -331,6 +390,8 @@ def check_device_status(id : 'int'):
     status = cursor.fetchall()
 
     conn.close()
+
+    # print(f'check_device_status{id}: {status[0][0]}')
 
     if status != []:
         return status[0][0]

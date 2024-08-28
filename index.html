@@ -3,202 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Visualizador de saude de máquinas</title>
-    <link rel="stylesheet" type="text/css" href="style/style.css"> 
+    <title>Machine Viewer</title>
     <script src="js/jquery-3.7.1.min.js" type="text/javascript"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<style>
 
-    <script src="scripts/script.js"></script>
-    <script type="module">
-        // variavel global de controle para saber qual máquina está recebendo detalhamento
-        var detailing = null;
+    .header {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        justify-content: space-between;
+        background-color: rgb(40, 11, 59);
+        color: white;
+        box-sizing: border-box;
+        padding: 20px;
+    }
 
-        // variavel que armazenará o endereço IP
-        let server_address;
+    .icones {
+        display: flex;
+        gap: 15px;
+        font-size: 30px;
+    }
 
-        // define o endereço IP
-        await fetch('configs/ip_addrs')
+</style>
+<script src="scripts/script.js"></script>
+<script type="module">
+
+    let serverAddress;
+
+    await fetch('configs/ip_addrs')
             .then((res) => res.text())
             .then((text) => {
-                server_address = text;
+                serverAddress = text;
             })
             .catch((e) => console.error(e));
-        
-        // variável que armazenará os cards criados,
-        var cards = [];
 
-        // variavel de controle para ver quantas máquinas estão trackeadas
-        var totalMachines = 0;
+    const tbody = document.querySelector('tbody');
 
-        // variável que armazenará os dados informados pela API
-        let data;
-        
-        // Função que coleta os dados da API
-        async function getData() {
+    setInterval(async () => {
 
-            const options = {method: 'GET'} 
-            data = await fetch(`http://${server_address}:5000/api/devices`,options)
-            
-            data = await data.json()
+        const data = await getData(`http://${serverAddress}:5000/api/devices`);
+        const cadastros = data[0];
+        const estados = data[1];
+        const address = data.address.split('://')[1].split('/')[0];
 
-            const modal = document.getElementById('modalMain')
-
-                if (modal.style.display == 'block') {
-                    updateDetailing(
-                        data[1][detailing]['cpud'],
-                        data[1][detailing]['mem']
-                    )
-                } else {
-                    const dataGrid = document.getElementById('devices-container');
-
-                    //variavel de controle para saber quantas máquinas estão conectadas
-                    var machines = 0;
-
-                    // verifica quais máquinas ativas existem
-                    data[0].forEach(machine => {
-                        if (machine != '' && machine['estado'] == "A"){
-                            machines++;
-
-                            // caso a quantidade de máquinas ativas seja diferente das trackeadas, define as rastreada como 
-                            // a quantidade de ativas, forçando a gerar uma nova leva de cards com todas as máquinas
-                            if (totalMachines != machines) {
-                                totalMachines = machines;
-                            }
-                        };
-                    });
-
-                    //verifica se não há nenhuma máquina rastreada
-                    if (machines == 0){ 
-                        dataGrid.replaceChildren(); 
-                    }
-                    // verifica se o elemento principal está vazio
-                    // ou se a quantidade de cards é menor do que a quantidade de máquinas
-                    else if (dataGrid.innerHTML === "" || 
-                        totalMachines != cards.length) {
-                        
-                        // retira todos os cards presentes
-                        dataGrid.replaceChildren();
-
-                        // reinicia a variavel
-                        cards = [];
-
-                        // variável de controle para iteração
-                        var i = 0;
-
-                        // cria um card para cada máquina
-                        data[0].forEach(cadastro => {
-
-                            // verifica se é uma máquina válida (não vazia)
-                            if (cadastro != '') {
-                                if (cadastro['estado'] == "A" && data[1][i]['cpud'] != 0) {
-                                    const card = geraCard(data[1][i]['id'],
-                                    cadastro['nome'],
-                                    data[1][i]['cput'],
-                                    data[1][i]['cpud'],
-                                    data[1][i]['mem']);
-                                    cards.push(card);
-                                };
-                                i++;
-                            }
-                        });
-                        
-                        // adiciona cada card à grid
-                        cards.forEach(card => {
-                            dataGrid.appendChild(card);
-                        });
-                        detailing = null;
-                    }
-                    // atualiza os cards
-                    else {
-                        var i = 0;
-                        data[0].forEach(machine => {
-                            if (machine != '') {
-                                if (machine['estado'] == 'A') {
-                                    updateBar(data[1][i]['cput'],'cpu'+machine['id'])
-                                    updateBar(data[1][i]['mem'],'mem'+machine['id'])
-                                };
-                            i++;
-                            };
-                        });
-                    }; // fim do outro caso (o que atualiza)
+        if (checkNewDevices(tbody, cadastros.length)) {
+            tbody.innerHTML = '';
+            cadastros.forEach(cadastro => {
+                if (cadastro.exibir == 'S'){
+                    const row = createDeviceRow(cadastro, estados[cadastros.indexOf(cadastro)], address, tbody);  
+                    tbody.appendChild(row);
                 };
-
-            // }
+            });
+        } else {
+            updateTable(tbody, cadastros, estados);
         }
-                    
-
-        getData();
-
-        // chama a getData() a cada 'x' milissegundos
-        setInterval(getData,1000);
-
-        
-        // Função responsável por gerar o card exibido
-        function geraCard(id,alias,cpuT,cpuD,mem){
-
-            var actualID = id;
-
-            // gerando o card (externo)
-            const card = document.createElement('div');
-            card.classList.add('machine-card');
-            card.id = 'card' + id;
-
-            // faz com que o card seja clicável
-            const link = document.createElement('a')
-            link.id = 'link' + id
-            link.onclick = () => {
-                geraDetailing(id,alias,cpuD,mem);
-                detailing = actualID-1;
-            }
-
-            card.appendChild(link)
-
-            // gerando cabeçalho do card
-            const header = document.createElement('div');
-            header.classList.add('header');
-
-            // adicionando o texto ao cabeçalho
-            header.appendChild(geraSpan(alias));
-
-            // adicionando header ao card
-            card.appendChild(header);
-
-            // adicionando legenda do CPU ao card
-            card.appendChild(geraSpan('CPU'));
-
-            // adicionando barra do CPU ao card
-            card.appendChild(geraBar(cpuT,'cpu'+id));
-
-            // adicionando legenda do Memória ao card
-            card.appendChild(geraSpan('MEM'));
-
-            // adicionando barra do Memória ao card        
-            card.appendChild(geraBar(mem,'mem'+id));
-
-            return card;
-            }
-
-    
-    </script>
-</head>
-
+    }, 1000);
+</script>
 <body>
-    
+    <!-- <a href="">Teste</a> -->
     <div class="header">
-        <object type="image/svg+xml" data="assets/img/logobranco.svg"></object>
-        <!-- <img src="assets/img/defaultLogo.svg" alt="logo" height="80px" style="padding-top: 10px; padding-bottom: 10px; padding-left: 20px;"> -->
-        <h1>Visualizador de Saúde da Máquina </h1>
+        <img src="assets/img/defaultLogo.svg" alt="logo" height="80px" style="padding-top: 10px; padding-bottom: 10px; padding-left: 20px;">
+        <div class="icones">
+            <i class="fas fa-user"></i>
+            <i class="fas fa-outdent"></i>
+        </div>
     </div>
-    <!-- Armazena o modal com o card de detalhamento-->
-    <div class="modal" id="modalMain">
-        <div class="modal-content" id="modalContent"></div>
-    </div>
-
-    <!-- Armazena o grid container, que segura todos os cards com as máquinas-->
-    <div class="grid-container" id="devices-container"></div>
-    
-
+    <table class="table table-bordered" id="sortTable">
+        <thead class="table table-responsive">
+            <tr>
+                <th class="text-center" style="width: 5%;">SO</th>
+                <th>Alias</th>
+                <th style="width: 10%;">IP Address</th>
+                <th style="width: 7%;">CPU (%)</th>
+                <th style="width: 7%;">MEM (%)</th>
+                <th style="width: 7%;">Disk Temp</th>
+                <th style="width: 7%;">CPU Temp</th>
+                <th style="width: 10%;">Status</th>
+                <th class="text-center" style="width: 5%;"><i class="fas fa-trash"></i></th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
 </body>
 </html>
