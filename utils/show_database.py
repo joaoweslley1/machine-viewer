@@ -10,16 +10,16 @@ while True:
     cursor = conn.cursor()
 
     print('Maquina Cadastro')
-    print('ID, IP, NOME, ATIVO')
-    cursor.execute('SELECT * FROM MAQUINA_CADASTRO')
+    print('ID, IP, NOME, ESTADO, SO, EXIBIR')
+    cursor.execute('SELECT * FROM maquina_cadastro')
     rows = cursor.fetchall()
 
     for row in rows:
         print(row)
 
     print('Maquina Status')
-    print('ID, CPUT, CPUD, MEM')
-    cursor.execute('SELECT * FROM MAQUINA_STATUS')
+    print('ID, CPUTOT, CPUDET, CPUTMP, MEMTOT, MEMUSA, SWPTOT, SWPUSA, DSKTOT, DSKUSA, DSKTMP')
+    cursor.execute('SELECT * FROM maquina_status')
     rows = cursor.fetchall()
 
     for row in rows:
