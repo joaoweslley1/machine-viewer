@@ -29,7 +29,7 @@ CORS(app)
 
 # respondável por mostrar as máquinas cadastradas no banco
 @app.route('/api/devices')
-def get_device_status():
+def get_all_device_status():
 
     try:
         conn = sqlite3.connect('../database/main_database.db')
@@ -41,11 +41,8 @@ def get_device_status():
     cursor = conn.cursor()
 
     cursor.execute("SELECT * FROM maquina_cadastro")
-    # cadastro = cursor.fetchall()
     cadastro_list = cursor.fetchall()
 
-
-    # print(cadastro)
     cadastro = []
     
     for c in cadastro_list:
@@ -81,6 +78,56 @@ def get_device_status():
     return jsonify(cadastro,status)
 
 
+
+@app.route('/api/maquina_especifica', methods=['POST'])
+def get_device_status():
+
+    conn = sqlite3.connect('../database/main_database.db')
+
+    data = request.get_json()
+    id = data['id']
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM maquina_cadastro WHERE id = ?", (int(id),))
+    cadastro_list = cursor.fetchall()
+
+    cadastro = []
+    
+    for c in cadastro_list:
+        cadastro.append({
+            'id' : c[0],
+            'ip' : c[1],
+            'nome' : c[2],
+            'estado' : c[3],
+            'so': c[4],
+            'exibir': c[5]
+            })
+
+    cursor.execute("SELECT * FROM maquina_status WHERE id = ?", (int(id),))
+    status_list = cursor.fetchall()
+
+    status = []
+    for s in status_list:
+        status.append({
+            'id' : s[0],
+            'cputot' : s[1],
+            'cpudet' : s[2],
+            'cputmp' : s[3],
+            'memtot': s[4],
+            'memusa' : s[5],
+            'swptot' : s[6],
+            'swpusa' : s[7],
+            'dsktot' : s[8],
+            'dskusa' : s[9],
+            'dsktmp' : s[10],
+        })
+    conn.close()
+
+    print(id, cadastro, status)
+    return jsonify(cadastro, status),200
+
+
+
 # responsável por cadastrar as máquinas no banco
 @app.route('/api/cadastro_maquina', methods=['POST'])
 def device_register():
@@ -94,15 +141,7 @@ def device_register():
         data = request.get_json()
         ip = request.remote_addr
 
-        # if len(clients) != 0:
-        #     last_update[len(clients)] = time.time()
-        # else:
-        #     last_update[1] = time.time()
-
         clients.append(ip)
-
-
-
 
         nome = data['nome']
         so = data['so']
@@ -128,23 +167,12 @@ def device_register():
 
         last_update[len(clients)] = time.time()
 
-
-        # index = -1
-
-        # # verifica se o cliente está ativo
-        # for i, ip_addr in enumerate(clients):
-        #     if ip_addr == ip:
-        #         if check_device_status(i+1) == 'A':
-        #             index = i+1
-
-        # if index != -1:
-        #     last_update[index] = time.time()
-
-
         return jsonify({'message': f'Usuário {nome} adicionado com sucesso!'}), 201
 
     except Exception as e:
         return jsonify({'error': str(e)}), 400
+
+
 
 # responsável por atualizar as informações no banco
 @app.route('/api/update_status', methods=['POST'])
@@ -178,6 +206,7 @@ def update_device_status():
         return jsonify({'Não há maquina.'}), 502
 
 
+
 @app.route('/api/desconectar_maquina', methods=['POST'])
 def desconectar_maquina():
 
@@ -187,8 +216,6 @@ def desconectar_maquina():
     desconectar_maquina(int(id))
     return jsonify({'message': f'Máquina {id} desativada'}), 202
 
-
-# def update_time():
 
 #########################################################################################################
 # Fim das Rotas da API
@@ -260,45 +287,6 @@ def monitor_inactivity():
                     desativar_maquina(client_id)
                     last_update[client_id] = 'I'
         time.sleep(15)
-
-
-# def cadastrar_maquina(ip_add:'str',alias:'str'):
-#     '''
-#     Função que cadastra a máquina no banco
-#     '''
-
-#     try:
-#         conn = sqlite3.connect('../database/main_database.db')
-#     except:
-#         conn = sqlite3.connect('database/main_database.db')
-    
-#     cursor = conn.cursor()
-
-#     try:
-#         conn.execute('BEGIN TRANSACTION')
-
-#         cursor.execute('''
-#                        INSERT INTO maquina_cadastro (
-#                         ip, 
-#                         alias, 
-#                         situacao,
-#                        so) 
-#                        VALUES (?, ?, ?, ?)
-#                        ''', 
-#                     (ip_add, alias, 'A'))
-        
-#         id = cursor.lastrowid
-
-#         cursor.execute('INSERT INTO maquina_status (id) VALUES (?)', (id,))
-
-#         conn.execute('COMMIT')
-
-#     except Exception as e:
-#         conn.execute('ROLLBACK')
-#         raise e
-    
-#     finally:
-#         conn.close()
 
 
 def atualizar_status(id, infos: 'dict'):
