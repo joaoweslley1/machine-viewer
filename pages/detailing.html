@@ -124,7 +124,8 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script type="module">
     
-    const deviceId = 1;
+    
+    const deviceId = parseInt(getDeviceId('device-id'));
 
     let serverAddress;
 
@@ -145,25 +146,25 @@
     const diskButton = document.getElementById('diskButton');
 
     cpuButton.addEventListener('click', function() {
-        console.log(cpuButton.id);
+        // console.log(estados[0]);
         changeDetailingCard(
             cpuButton.id, 
-            cadastros[deviceId-1], 
-            estados[deviceId-1])
+            cadastros[0], 
+            estados[0])
         });
     memButton.addEventListener('click', function() {
-        console.log(memButton.id);
+        // console.log(memButton.id);
         changeDetailingCard(
             memButton.id, 
-            cadastros[deviceId-1], 
-            estados[deviceId-1])
+            cadastros[0], 
+            estados[0])
     })
     diskButton.addEventListener('click', function() {
-        console.log(diskButton.id);
+        // console.log(diskButton.id);
         changeDetailingCard(
             diskButton.id, 
-            cadastros[deviceId-1], 
-            estados[deviceId-1])
+            cadastros[0], 
+            estados[0])
     })
 
 
@@ -173,7 +174,6 @@
     function changeDetailingCard(buttonClicked, cadastro, estado){
 
         const detailingCard = document.getElementById('detailing-card-body');
-
         detailingCard.innerHTML = '';
         const elements = generateDetailingCardContent(buttonClicked, cadastro, estado);
 
@@ -182,7 +182,13 @@
         });
     };
 
-    changeDetailingCard(cpuButton.id, cadastros[deviceId-1], estados[deviceId-1]);
 
+    function getDeviceId(param) {
+        const urlParams = new URLSearchParams(window.location.search);
+        return urlParams.get(param);
+    }
+
+    window.onload = changeDetailingCard(cpuButton.id, cadastros[0], estados[0]);
+    
 </script>
 </html>
