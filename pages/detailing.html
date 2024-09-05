@@ -54,17 +54,17 @@
             <i class="fas fa-outdent"></i>
         </div>
     </div>
-    <div class="device-header">
-        <img src="../assets/img/linuxIcon.svg" alt="so-icon" height="240px" id="so-icon">
+    <div class="device-header" id="device-header">
+        <img src="" alt="so-icon" height="240px" id="so-icon">
         <div style="display: flex; flex-direction: column; flex: 3; align-items: start;" class="my-auto">
             <b>Alias:</b>
-            <i style="padding-left: 10px;">Máquina ABC</i>
+            <i style="padding-left: 10px;" id="device-name"></i>
             <hr>
             <b>Endereço IP:</b>
-            <i style="padding-left: 10px;">127.0.0.1</i>
+            <i style="padding-left: 10px;" id="device-address"></i>
             <hr>
             <b>S.O.:</b>
-            <i style="padding-left: 10px;">Linux</i>
+            <i style="padding-left: 10px;" id="device-so"></i>
         </div>
         <div class="card" style="flex: 1">
             <div class="card-body" id="status-card-body">
@@ -73,8 +73,8 @@
                 </h5>
                 <hr>
                 <div style="display: flex; padding: 10px;">
-                    <img src="../assets/img/enabled.svg" alt="enabledIcon">
-                    <p class="my-auto" style="padding-left: 10px;">Ativa</p>
+                    <img src="../assets/img/enabled.svg" alt="enabledIcon" id="enabled-icon">
+                    <p class="my-auto" style="padding-left: 10px;" id="enabled-label">Ativa</p>
                 </div>
                 <p style="padding: 10px;">[icone] CPU: 70°</p>
                 <p style="padding: 10px;">[icone] DISK: 70°</p>
@@ -124,51 +124,49 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <script type="module">
     
-    
     const deviceId = parseInt(getDeviceId('device-id'));
 
     let serverAddress;
-
+    
     await fetch('../configs/ip_addrs')
-            .then((res) => res.text())
-            .then((text) => {
-                serverAddress = text;
-            })
-            .catch((e) => console.error(e));
+    .then((res) => res.text())
+    .then((text) => {
+        serverAddress = text;
+    })
+    .catch((e) => console.error(e));
     
     
     let data = await getDataById(deviceId, `http://${serverAddress}:5000/api/maquina_especifica`);
     let cadastros = data[0];
     let estados = data[1];
-
+    
     const cpuButton = document.getElementById('cpuButton');
     const memButton = document.getElementById('memButton');
     const diskButton = document.getElementById('diskButton');
-
+    
+    let actualDetailingPage = cpuButton.id;
+    
     cpuButton.addEventListener('click', function() {
-        // console.log(estados[0]);
+        actualDetailingPage = cpuButton.id;
         changeDetailingCard(
             cpuButton.id, 
             cadastros[0], 
             estados[0])
         });
     memButton.addEventListener('click', function() {
-        // console.log(memButton.id);
+        actualDetailingPage = memButton.id;
         changeDetailingCard(
             memButton.id, 
             cadastros[0], 
             estados[0])
     })
     diskButton.addEventListener('click', function() {
-        // console.log(diskButton.id);
+        actualDetailingPage = diskButton.id;
         changeDetailingCard(
             diskButton.id, 
             cadastros[0], 
             estados[0])
     })
-
-
-    let firstLoad = true;
 
 
     function changeDetailingCard(buttonClicked, cadastro, estado){
@@ -178,17 +176,41 @@
         const elements = generateDetailingCardContent(buttonClicked, cadastro, estado);
 
         elements.forEach(element => {
+            // console.log(element)
             detailingCard.appendChild(element);
         });
     };
 
+    loadPage(
+        document.getElementById('so-icon'),
+        document.getElementById('device-name'),
+        document.getElementById('device-address'),
+        document.getElementById('device-so'),
+        document.getElementById('enabled-icon'),
+        document.getElementById('enabled-label'),
+        cadastros[0],
+        estados[0]
+    );
 
-    function getDeviceId(param) {
-        const urlParams = new URLSearchParams(window.location.search);
-        return urlParams.get(param);
-    }
+    changeDetailingCard(cpuButton.id, cadastros[0], estados[0]);
 
-    window.onload = changeDetailingCard(cpuButton.id, cadastros[0], estados[0]);
+    // updateDetailingCard(document.getElementById('detailing-card-body'));
+
+    setInterval(async () => {
+
+        let data = await getDataById(deviceId, `http://${serverAddress}:5000/api/maquina_especifica`);
+        let cadastros = data[0];
+        let estados = data[1];
+
+        updatePage(
+        actualDetailingPage,
+        document.getElementById('device-header'),
+        document.getElementById('detailing-card-body'),
+        cadastros[0], 
+        estados[0]
+        );
+    }, 1000)
     
+
 </script>
 </html>

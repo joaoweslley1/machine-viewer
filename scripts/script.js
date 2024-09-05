@@ -18,17 +18,12 @@ async function getDataById(machineId, ipAddress) {
         },
         body: JSON.stringify(options)
     })
-    // .then(response => response.json())
-    // .then(result => {
-    //     console.log(result);
-    // })
     .catch(error => {
         console.error('Error:', error);
     });
 
-    // console.log(response);
     const data = await response.json();
-    // console.log(data)
+
     return data;
 }
 
@@ -74,7 +69,7 @@ function createDeviceRow(cadastro, estado, ipAddress, table) {
     // TODO - Utilizar o link para acessar a página de detalhamento da máquina.
     
     const nameLink = document.createElement('a');
-    nameLink.href = 'pages/detailing.html';
+    nameLink.href = `pages/detailing.html?device-id=${cadastro.id}`;
     nameLink.textContent = cadastro.nome;
     aliasCell.appendChild(nameLink);
 
@@ -126,7 +121,6 @@ function updateTable(table, cadastro, estado) {
     }
 
     for (var i = 0, row; row = table.rows[i]; i++) {
-        //row.cells[1].textContent = filteredCadastro[i].nome;
         row.cells[2].textContent = filteredCadastro[i].ip;
         row.cells[3].textContent = estado[i].cputot + '%';
         row.cells[4].textContent = (parseFloat(estado[i].memusa) * 100 / parseFloat(estado[i].memtot)).toFixed(1)+'%';
@@ -163,8 +157,6 @@ function generateDetailingCardContent(buttonClicked, cadastro, estado) {
 
     let detailingInfo;
 
-    // console.log('FOI');
-
     if (buttonClicked == 'cpuButton') {
         cardTitle.textContent = 'CPU';
         detailingInfo = generateCpuDetails(cadastro, estado);
@@ -184,17 +176,16 @@ function generateDetailingCardContent(buttonClicked, cadastro, estado) {
 }
 
 function generateCpuDetails(cadastro, estado) {
-    // console.log('FOI!')
     const cpuMedData = estado.cputot;
     const cpuDetData = estado.cpudet.split(';');
-
+    
     const elements = [];
-
-    const cpuMed = _generateBar('MED', cpuMedData, true);
+    
+    const cpuMed = _generateBar('MED', cpuMedData, true, 'cpu-total-bar');
     elements.push(cpuMed, document.createElement('br'));
 
     for (let i = 0; i < cpuDetData.length; i++) {
-        const row = _generateBar(`Core ${i}`, cpuDetData[i]);
+        const row = _generateBar(`Core ${i}`, cpuDetData[i], false, `core-bar-${i}`);
         elements.push(row);
     }
 
@@ -219,22 +210,22 @@ function generateMemoryDetails(cadastro, estado) {
     memRow.style.justifyContent = 'space-evenly';
     
     memRow.appendChild(_generateColum('TOTAL', memTot + 'GB'));
-    memRow.appendChild(_generateColum('USADO', memUsa + 'GB'));
-    memRow.appendChild(_generateColum('LIVRE', memLiv + 'GB'));
+    memRow.appendChild(_generateColum('USADO', memUsa + 'GB', 'memusa'));
+    memRow.appendChild(_generateColum('LIVRE', memLiv + 'GB', 'memliv'));
     
     const swpRow = document.createElement('div');
     swpRow.style.display = 'flex';
     swpRow.style.justifyContent = 'space-evenly';
 
     swpRow.appendChild(_generateColum('TOTAL', swpTot + 'GB'));
-    swpRow.appendChild(_generateColum('USADO', swpUsa + 'GB'));
-    swpRow.appendChild(_generateColum('LIVRE', swpLiv + 'GB'));
+    swpRow.appendChild(_generateColum('USADO', swpUsa + 'GB', 'swpusa'));
+    swpRow.appendChild(_generateColum('LIVRE', swpLiv + 'GB', 'swpliv'));
     
 
-    elements.push(_generateBar('MEM', (memUsa * 100 / memTot).toFixed(1), true));
+    elements.push(_generateBar('MEM', (memUsa * 100 / memTot).toFixed(1), true, 'membar'));
     elements.push(memRow);
     elements.push(document.createElement('hr'))
-    elements.push(_generateBar('SWAP', (swpUsa * 100 / swpTot).toFixed(1), true));
+    elements.push(_generateBar('SWAP', (swpUsa * 100 / swpTot).toFixed(1), true, 'swpbar'));
     elements.push(swpRow);
 
     return elements;
@@ -254,14 +245,15 @@ function generateDiskDetails(cadastro, estado) {
 
     const chartCanvas = document.createElement('canvas');
     const chart = new Chart(chartCanvas, {
+        name: 'disk-chart',
         type: 'pie',
         data: {
             labels: ['Usado', 'Disponível'],
             datasets: [{
                 label: 'Armazenamento',
                 data: [dskUsa, dskLiv],
-                backgroundColor: ['red', 'green'],
-                borderColor: ['#ffffff', '#ffffff'],
+                backgroundColor: ['#AD1818', '#0d6efd'],
+                borderColor: ['#FFFFFF00', '#FFFFFF00'],
                 borderWidth: 1
             }]
         },
@@ -269,58 +261,144 @@ function generateDiskDetails(cadastro, estado) {
             maintainAspectRatio: false,
             responsive: true,
         }
+
     });
 
-    holder.appendChild(chartCanvas)
+    holder.appendChild(chartCanvas);
 
     const diskRow = document.createElement('div');
     diskRow.style.display = 'flex';
     diskRow.style.justifyContent = 'space-evenly';
 
-    diskRow.appendChild(_generateColum('TOTAL', dskTot + 'GB'));
-    diskRow.appendChild(_generateColum('USADO', dskUsa + 'GB'));
-    diskRow.appendChild(_generateColum('LIVRE', dskLiv + 'GB'));
+    diskRow.appendChild(_generateColum('TOTAL', dskTot + 'GB', 'dsktot'));
+    diskRow.appendChild(_generateColum('USADO', dskUsa + 'GB', 'dskusa'));
+    diskRow.appendChild(_generateColum('LIVRE', dskLiv + 'GB', 'dskliv'));
 
     elements.push(holder, document.createElement('hr'), diskRow);
-    // elements.push()
     return elements;
 }
 
-function _generateBar(label, percentage, med = false) {
-    // console.log('FOI!!')
+function getDeviceId(param) {
+    const urlParams = new URLSearchParams(window.location.search);
+    return urlParams.get(param);
+}
+
+function loadPage(soIcon, deviceName, deviceAddress, deviceSo, enabledIcon, enabledLabel, cadastro, estado) {
+
+    soIcon.src = `../assets/img/${cadastro.so.toLowerCase()}Icon.svg`;
+    deviceName.textContent = cadastro.nome;
+    deviceAddress.textContent = cadastro.ip;
+    deviceSo.textContent = cadastro.so;
+
+    if (cadastro.estado === 'A') {
+        enabledIcon.src = '../assets/img/enabled.svg';
+        enabledLabel.textContent = 'Ativa';
+    } else {
+        enabledIcon.src = '../assets/img/unabled.svg';
+        enabledLabel.textContent = 'Inativa';
+    }
+}
+
+function updatePage(buttonClicked, header, body, cadastro, estado) {
+    const statusLabel = header.querySelector('#enabled-label');
+
+    if (cadastro.estado === 'A') {
+        header.querySelector('#enabled-label').textContent = 'Ativa';
+    } else {
+        header.querySelector('#enabled-label').textContent = 'Inativa';
+    }
+
+    if (buttonClicked == 'cpuButton') {
+
+        // console.log(body.querySelector('#cpu-total-bar'))
+        _updateBar(body.querySelector('#cpu-total-bar'), estado.cputot);
+
+        const cpuDetData = estado.cpudet.split(';')
+    
+        for (let i = 0; i < cpuDetData.length; i++) {
+            _updateBar(body.querySelector(`#core-bar-${i}`), cpuDetData[i])
+        }
+
+    } else if (buttonClicked == 'memButton') {
+
+        _updateBar(body.querySelector('#membar'), (estado.memusa * 100 / estado.memtot).toFixed(1))
+        _updateBar(body.querySelector('#swpbar'), (estado.swpusa * 100 / estado.swptot).toFixed(1))
+
+        body.querySelector('#memliv').textContent = (estado.memtot - estado.memusa).toFixed(2) + 'GB';
+        body.querySelector('#memusa').textContent = estado.memusa + 'GB';
+        body.querySelector('#swpusa').textContent = estado.swpusa + 'GB';
+        body.querySelector('#swpliv').textContent = (estado.swptot - estado.swpusa).toFixed(2) + 'GB';
+        
+    } else if (buttonClicked == 'diskButton') {
+        console.log(body.querySelector('#dskusa').textContent);
+        console.log(estado.dskusa);
+        body.querySelector('#dskusa').textContent = estado.dskusa + 'GB';
+        body.querySelector('#dskliv').textContent = (estado.dsktot - estado.dskusa).toFixed(2) + 'GB';
+        // body.querySelector('#swpusa').textContent = estado.swpusa + 'GB';
+        // body.querySelector('#swpliv').textContent = (estado.swptot - estado.swpusa).toFixed(2) + 'GB';
+    
+    }
+
+
+
+}
+
+function _updateBar(bar, value) {
+
+    const progressBar = bar;
+
+    progressBar.style.width = progressBar.textContent = value + '%';
+
+    if (value < 30) {
+        progressBar.style.backgroundColor = '#0d6efd';
+    } else if (value < 50) {
+        progressBar.style.backgroundColor = '#E6B30D';
+    } else {
+        progressBar.style.backgroundColor = '#AD1818';
+    }
+}
+
+function _generateBar(label, percentage, med = false, id='') {
     const actualProgress = percentage;
 
     const row = document.createElement('div');
     row.style.display = 'flex';
     row.style.gap = '20px';
+    row.style.justifyContent = 'end';
 
     const labelInfo = document.createElement('b');
     labelInfo.classList.add('my-auto');
     labelInfo.textContent = label;
 
-    const progressBar = document.createElement('div');
-    progressBar.classList.add('progress', 'my-auto');
-
     const progress = document.createElement('div');
-    progress.classList.add('progress-bar');
-    progress.style.width = progress.textContent = actualProgress + '%';
+    progress.classList.add('progress', 'my-auto');
 
+    const progressBar = document.createElement('div');
+    progressBar.classList.add('progress-bar');
+    
+    _updateBar(progressBar, actualProgress);
+    
     if (med) {
-        progressBar.style.width = '90%';
+        progress.style.width = '90%';
     } else {
-        row.style.justifyContent = 'end';
         row.style.paddingTop = '10px';
-        progressBar.style.width = '80%';
+        progress.style.width = '85%';
+    }
+    
+    if (id !== '') {
+        progressBar.id = id;
     }
 
-    progressBar.appendChild(progress);
+    progress.appendChild(progressBar);
+
+    
     row.appendChild(labelInfo);
-    row.appendChild(progressBar);
+    row.appendChild(progress);
 
     return row;
 }
 
-function _generateColum(labelContent, valueContent) {
+function _generateColum(labelContent, valueContent, id = '') {
     const column = document.createElement('div');
     column.style.display = 'flex';
     column.style.flexDirection = 'column';
@@ -337,10 +415,16 @@ function _generateColum(labelContent, valueContent) {
     
     const bar = document.createElement('hr');
     bar.style.width = '100%'
+    
+    if (id != '') {
+        value.id = id;
+    }
 
     column.appendChild(value);
     column.appendChild(bar);
     column.appendChild(label);
-
+    
+    
     return column;
 }
+
