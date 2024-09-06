@@ -5,7 +5,6 @@ import platform
 
 alias = input('Escolha um apelido: ')
 server_ip = input('Digite o endereço IP do servidor: ')
-# server_ip = '192.168.100.25'
 SERVER_PORT = 5000
 
 if len(platform.system()) != 0:
@@ -19,13 +18,6 @@ def get_informations():
     """
         Get the information about the machine;
     """
-    # while True:
-
-        # cpu = psutil.cpu_percent(interval=1)
-        # cputotal = psutil.cpu_percent(interval=1,percpu=True)
-        # mem = psutil.virtual_memory()
-        # message = f"{cpu}|{';'.join([str(c) for c in cputotal])}|{mem.percent}"
-        # cpu_details = ';'.join([str(c) for c in cputotal])
 
     try:
         cputot = psutil.cpu_percent(interval=0)

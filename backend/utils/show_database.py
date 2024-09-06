@@ -2,11 +2,13 @@ import sqlite3
 from time import sleep
 from os import system
 
+database_path = '../database/database.db'
+
 # Verifica o estado do banco, atualizando a cada 2 segundos
 
 while True:
     system('clear')
-    conn = sqlite3.connect('../database/main_database.db')
+    conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
     print('Maquina Cadastro')

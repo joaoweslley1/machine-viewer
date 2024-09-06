@@ -1,6 +1,6 @@
 old_*
 test_*
-test*
+tests*
 gitingore/
 database/
 css/

@@ -29,12 +29,12 @@
     }
 
 </style>
-<script src="scripts/script.js"></script>
+<script src="js/script.js"></script>
 <script type="module">
 
     let serverAddress;
 
-    await fetch('configs/ip_addrs')
+    await fetch("../backend/configs/ip_addrs")
             .then((res) => res.text())
             .then((text) => {
                 serverAddress = text;
@@ -48,13 +48,12 @@
         const data = await getData(`http://${serverAddress}:5000/api/devices`);
         const cadastros = data[0];
         const estados = data[1];
-        const address = data.address.split('://')[1].split('/')[0];
 
         if (checkNewDevices(tbody, cadastros.length)) {
             tbody.innerHTML = '';
             cadastros.forEach(cadastro => {
                 if (cadastro.exibir == 'S'){
-                    const row = createDeviceRow(cadastro, estados[cadastros.indexOf(cadastro)], address, tbody);  
+                    const row = createDeviceRow(cadastro, estados[cadastros.indexOf(cadastro)], serverAddress, tbody);  
                     tbody.appendChild(row);
                 };
             });
@@ -64,7 +63,6 @@
     }, 1000);
 </script>
 <body>
-    <!-- <a href="">Teste</a> -->
     <div class="header">
         <img src="assets/img/defaultLogo.svg" alt="logo" height="80px" style="padding-top: 10px; padding-bottom: 10px; padding-left: 20px;">
         <div class="icones">

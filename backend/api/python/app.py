@@ -20,7 +20,8 @@ last_update : dict = {}
 app = Flask(__name__)
 CORS(app)
 
-
+database_path = '../../database/database.db'
+configs_path = '../../configs/ip_addrs'
 
 #########################################################################################################
 # Rotas da API
@@ -32,7 +33,7 @@ CORS(app)
 def get_all_device_status():
 
     try:
-        conn = sqlite3.connect('../database/main_database.db')
+        conn = sqlite3.connect(database_path)
     except Exception as e:
         print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
         raise e
@@ -82,7 +83,7 @@ def get_all_device_status():
 @app.route('/api/maquina_especifica', methods=['POST'])
 def get_device_status():
 
-    conn = sqlite3.connect('../database/main_database.db')
+    conn = sqlite3.connect(database_path)
 
     data = request.get_json()
     id = data['id']
@@ -132,7 +133,7 @@ def get_device_status():
 @app.route('/api/cadastro_maquina', methods=['POST'])
 def device_register():
     try:
-        conn = sqlite3.connect('../database/main_database.db')
+        conn = sqlite3.connect(database_path)
     except Exception as e:
         print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
         raise e
@@ -234,11 +235,11 @@ def generate_database():
 
 
     try:
-        remove('../database/main_database.db')
+        remove(database_path)
     except:
         print('Database empty')
 
-    conn = sqlite3.connect('../database/main_database.db')
+    conn = sqlite3.connect(database_path)
 
     cursor = conn.cursor()
 
@@ -294,7 +295,7 @@ def atualizar_status(id, infos: 'dict'):
     Função que atualiza as informações do banco
     '''
     try:
-        conn = sqlite3.connect('../database/main_database.db')
+        conn = sqlite3.connect(database_path)
     except Exception as e:
         print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
         raise e
@@ -339,7 +340,7 @@ def atualizar_status(id, infos: 'dict'):
 def desativar_maquina(id:'int'):
     
     try:
-        conn = sqlite3.connect('../database/main_database.db')
+        conn = sqlite3.connect(database_path)
     except Exception as e:
         print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
         raise e
@@ -355,7 +356,7 @@ def desativar_maquina(id:'int'):
 
 def desconectar_maquina(id: 'int'):
     try:
-        conn = sqlite3.connect('../database/main_database.db')
+        conn = sqlite3.connect(database_path)
     except Exception as e:
         print('Erro ocorrido! Você tentou acessar a pasta "scripts/"?')
         raise e
@@ -370,7 +371,7 @@ def desconectar_maquina(id: 'int'):
 
 def check_device_status(id : 'int'):
 
-    conn = sqlite3.connect('../database/main_database.db')
+    conn = sqlite3.connect(database_path)
     cursor = conn.cursor()
 
     cursor.execute('SELECT situacao FROM maquina_cadastro WHERE id = ?',(id,))
@@ -390,11 +391,11 @@ def check_device_status(id : 'int'):
 #####################################################################################################
 
 def load_api():
-    if not path.exists('../configs/'):
-        mkdir('../configs/')
+    if not path.exists('/'.join(configs_path.split('/')[:3]) + '/'):
+        mkdir('/'.join(configs_path.split('/')[:3]) + '/')
     
-    if not path.exists('../database/'):
-        mkdir('../database/')
+    if not path.exists('/'.join(database_path.split('/')[:3]) + '/'):
+        mkdir('/'.join(database_path.split('/')[:3]) + '/')
 
     generate_database()
 
