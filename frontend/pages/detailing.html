@@ -136,7 +136,7 @@
     .catch((e) => console.error(e));
     
     
-    let data = await getDataById(deviceId, `http://${serverAddress}:5000/api/maquina_especifica`);
+    let data = await getDataById(deviceId, `http://${serverAddress}:9900/maquinas/${deviceId}`);
     let cadastros = data[0];
     let estados = data[1];
     
@@ -198,7 +198,7 @@
 
     setInterval(async () => {
 
-        let data = await getDataById(deviceId, `http://${serverAddress}:5000/api/maquina_especifica`);
+        let data = await getDataById(deviceId, `http://${serverAddress}:9900/maquinas/${deviceId}`);
         let cadastros = data[0];
         let estados = data[1];
 

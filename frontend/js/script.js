@@ -11,16 +11,7 @@ async function getDataById(machineId, ipAddress) {
 
     const options = {id: machineId};
 
-    const response = await fetch(ipAddress, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(options)
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    const response = await fetch(ipAddress);
 
     const data = await response.json();
 
@@ -95,7 +86,9 @@ function createDeviceRow(cadastro, estado, ipAddress, table) {
 
     removeButton.addEventListener('click', function() {
         _disableDevice(newRow.id.split('_')[1], ipAddress);
-        table.deleteRow(newRow.rowIndex - 1);
+        if (cadastro.estado !== 'A'){
+            table.deleteRow(newRow.rowIndex - 1);
+        }
     });
 
 
@@ -131,21 +124,7 @@ function updateTable(table, cadastro, estado) {
 }
 
 async function _disableDevice(machineId, ipAddress){
-    const options = {id : machineId};
-    await fetch(`http://${ipAddress}/api/desconectar_maquina`, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(options)
-    })
-    .then(response => response.json())
-    .then(result => {
-        console.log(result);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-    });
+    await fetch(`http://${ipAddress}:9900/maquinas/${machineId}`, {method: 'DELETE'})
 }
 
 function generateDetailingCardContent(buttonClicked, cadastro, estado) {
@@ -304,8 +283,10 @@ function updatePage(buttonClicked, header, body, cadastro, estado) {
 
     if (cadastro.estado === 'A') {
         header.querySelector('#enabled-label').textContent = 'Ativa';
+        header.querySelector('#enabled-icon').src = '../assets/img/enabled.svg'
     } else {
         header.querySelector('#enabled-label').textContent = 'Inativa';
+        header.querySelector('#enabled-icon').src = '../assets/img/unabled.svg'
     }
 
     if (buttonClicked == 'cpuButton') {

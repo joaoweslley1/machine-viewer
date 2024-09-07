@@ -4,8 +4,10 @@ from time import sleep
 import platform
 
 alias = input('Escolha um apelido: ')
+# alias = 'teste'
 server_ip = input('Digite o endereço IP do servidor: ')
-SERVER_PORT = 5000
+# server_ip = '127.0.0.1'
+SERVER_PORT = 9900
 
 if len(platform.system()) != 0:
     PLATAFORMA = platform.system()
@@ -64,17 +66,6 @@ def get_informations():
     except:
         dskusa = 'Indisponível'
 
-    # cputot = psutil.cpu_percent(interval=0)
-    # cpudet = ';'.join([str(c) for c in psutil.cpu_percent(interval=0,percpu=True)])
-    # cputmp = psutil.sensors_temperatures()["coretemp"][0][1]
-    # memtot = round(psutil.virtual_memory().total/(1024**3),2)
-    # memusa = round(psutil.virtual_memory().used/(1024**3),2)
-    # swptot = round(psutil.swap_memory().total/(1024**3),2)
-    # swpusa = round(psutil.swap_memory().used/(1024**3),2)
-    # dsktmp = psutil.sensors_temperatures()["nvme"][0][1] # verificar compatibilidade
-    # dsktot = round(psutil.disk_usage("/")[0]/(1024**3),2)
-    # dskusa = round(psutil.disk_usage("/")[1]/(1024**3),2)
-    
     message = {
         'cputot': cputot,
         'cpudet': cpudet,
@@ -98,20 +89,20 @@ def first_connect():
             'so' : PLATAFORMA
         }
 
-        response = requests.post(f'{URL}/api/cadastro_maquina', json=message)
+        response = requests.post(f'{URL}/maquinas', json=message)
         return response
     except Exception as e:
         return f'Ocorreu um erro: {e}'
 
 
-def client_send():
+def client_send(id):
     while True:
         sleep(1)
         try:
             message = get_informations()
-            response = requests.post(f'{URL}/api/update_status', json=message)
+            response = requests.put(f'{URL}/maquinas/{id}', json=message)
 
-            if response.status_code >= 500:
+            if response.status_code not in [200, 201]:
                 print(response.json())
                 break
         
@@ -123,8 +114,11 @@ def client_send():
 if __name__ == '__main__':
 
     result = first_connect()
-
-    if result.status_code == 201:
-        client_send()
-    else:
-        print(result.json())
+    print(result.json())
+    id = result.json()['id']
+    print(id)
+    client_send(id)
+    # if result.status_code == 201:
+    #     client_send()
+    # else:
+    #     print(result.json())
