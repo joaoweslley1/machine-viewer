@@ -7,7 +7,7 @@ alias = input('Escolha um apelido: ')
 # alias = 'teste'
 server_ip = input('Digite o endereço IP do servidor: ')
 # server_ip = '127.0.0.1'
-SERVER_PORT = 9900
+SERVER_PORT = 5900
 
 if len(platform.system()) != 0:
     PLATAFORMA = platform.system()

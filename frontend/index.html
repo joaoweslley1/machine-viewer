@@ -45,7 +45,7 @@
 
     setInterval(async () => {
 
-        const data = await getData(`http://${serverAddress}:9900/maquinas`);
+        const data = await getData(`http://${serverAddress}:5900/maquinas`);
         const cadastros = data[0];
         const estados = data[1];
 

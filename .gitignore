@@ -1,7 +1,7 @@
 old_*
 test_*
 test*
-gitingore/*
 *.db
-css/
-configs/
+*.sqlite
+configs
+node_modules

@@ -1,0 +1,42 @@
+@server = http://192.168.100.36:5900
+@id = {{createMaquina.response.body.$.id}}
+
+### cadastrarMaquina
+# @name createMaquina
+POST {{server}}/maquinas
+Content-Type: application/json
+
+{
+    "nome": "teste1",
+    "so": "windows"
+}
+
+
+### pegarStatus
+GET {{server}}/maquinas
+
+### pegarStatusMaquina
+GET {{server}}/maquinas?id={{id}}
+
+### pegarStatusMaquina2
+GET {{server}}/maquinas/{{id}}
+
+### atualizarMaquina
+PUT {{server}}/maquinas/{{id}}
+Content-Type: application/json
+
+{
+    "cputot": "3.7",
+    "cpudet": "7.1;0.0;8.0;2.0;4.9;3.0;1.0;2.0",
+    "cputmp": "53",
+    "memtot": "7.44",
+    "memusa": "4.13",
+    "swptot": "12",
+    "swpusa": "0.02",
+    "dsktot": "233.18",
+    "dskusa": "107.22",
+    "dsktmp": "31.85"
+}
+
+### Deletar Maquina
+DELETE {{server}}/maquinas/{{id}}

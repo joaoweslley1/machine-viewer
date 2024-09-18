@@ -1,7 +1,7 @@
 import sqlite3
 from os import remove
 
-DATABASE_PATH = 'database.db'
+DATABASE_PATH = 'db.sqlite'
 
 def generate_database():
     '''
@@ -18,12 +18,13 @@ def generate_database():
 
     cursor.execute('''
             CREATE TABLE IF NOT EXISTS maquina_cadastro (
-                id INTEGER PRIMARY KEY,
-                ip VARCHAR(15) DEFAULT NULL,
-                alias VARCHAR(255),
-                situacao VARCHAR(1) DEFAULT I,
-                so VARCHAR(255),
-                exibir VARCHAR(1) DEFAULT S)
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                ip VARCHAR(16),
+                alias VARCHAR(100),
+                situacao VARCHAR(1) DEFAULT 'I',
+                so VARCHAR(255) DEFAULT NULL,
+                exibir VARCHAR(1) DEFAULT S
+            );
             ''')
 
 

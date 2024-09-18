@@ -61,7 +61,7 @@ function createDeviceRow(cadastro, estado, ipAddress, table) {
     
     const nameLink = document.createElement('a');
     nameLink.href = `pages/detailing.html?device-id=${cadastro.id}`;
-    nameLink.textContent = cadastro.nome;
+    nameLink.textContent = cadastro.alias;
     aliasCell.appendChild(nameLink);
 
 
@@ -75,7 +75,7 @@ function createDeviceRow(cadastro, estado, ipAddress, table) {
 
     cpuTempCell.textContent = estado.cputmp !== 'Indisponível' ? estado.cputmp + '°C' : estado.cputmp;
 
-    statusCell.textContent = cadastro.estado === 'A' ? 'Ativa' : 'Inativa';
+    statusCell.textContent = cadastro.situacao === 'A' ? 'Ativa' : 'Inativa';
 
     const removeIcon = document.createElement('i');
     removeIcon.classList.add('fas', 'fa-trash');
@@ -119,12 +119,12 @@ function updateTable(table, cadastro, estado) {
         row.cells[4].textContent = (parseFloat(estado[i].memusa) * 100 / parseFloat(estado[i].memtot)).toFixed(1)+'%';
         row.cells[5].textContent = estado[i].dsktmp !== 'Indisponível' ? estado[i].dsktmp + '°C' : estado[i].dsktmp;
         row.cells[6].textContent = estado[i].cputmp !== 'Indisponível' ? estado[i].cputmp + '°C' : estado[i].cputmp;
-        row.cells[7].textContent = filteredCadastro[i].estado === 'A' ? 'Ativa' : 'Inativa';
+        row.cells[7].textContent = filteredCadastro[i].situacao === 'A' ? 'Ativa' : 'Inativa';
     }
 }
 
 async function _disableDevice(machineId, ipAddress){
-    await fetch(`http://${ipAddress}:9900/maquinas/${machineId}`, {method: 'DELETE'})
+    await fetch(`http://${ipAddress}:5900/maquinas/${machineId}`, {method: 'DELETE'})
 }
 
 function generateDetailingCardContent(buttonClicked, cadastro, estado) {

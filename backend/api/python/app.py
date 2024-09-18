@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from os import remove, path, mkdir
-import sqlite3
 import threading
 import time
 from models import maquinas as mq
+from database import database as db
 
 # constantes
 PORT : int  = 9900
@@ -95,11 +95,6 @@ def maquina_status(id):
         else:
             return jsonify(response),500
 
-
-
-#########################################################################################################
-# funções de administração do banco
-#########################################################################################################
 
 
 def monitor_inactivity():
