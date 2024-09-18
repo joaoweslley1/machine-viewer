@@ -5,3 +5,4 @@ test*
 *.sqlite
 configs
 node_modules
+__pycache__

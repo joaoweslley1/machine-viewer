@@ -3,16 +3,17 @@ from flask_cors import CORS
 from os import remove, path, mkdir
 import threading
 import time
-from models import maquinas as mq
-from database import database as db
+# from models import maquinas as mq
+import models.cadastro as cd
+import models.status as st
+import database.load as load
 
 # constantes
-PORT : int  = 9900
+PORT : int  = 5900
 TIMEOUT : int = 10
 
 # configurações do servidor
 server_ip : str = ''
-# server_ip = '127.0.0.1'
 clients : list = []
 
 # variavel para controle de cliente
@@ -22,7 +23,7 @@ last_update : dict = {}
 app = Flask(__name__)
 CORS(app)
 
-database_path = '../../database/database.db'
+# database_path = '../../database/database.db'
 configs_path = '../../configs/ip_addrs'
 
 @app.route('/maquinas', methods=['POST'])
@@ -33,7 +34,8 @@ def maquina_cadastro():
     data = request.get_json()
     data['ip'] = ip_add
 
-    response = mq.cadastra_maquina(data)
+    # response = mq.cadastra_maquina(data)
+    response = cd.cadastra_maquina(data)
 
     if response == 0:
         clients.append(ip_add)
@@ -52,7 +54,9 @@ def maquinas_status():
 
     id = request.args.get('id')
 
-    response = mq.exibe_maquinas(id)
+    response = []
+    response.append(cadastro = cd.exibe_maquinas(id))
+    response.append(status = st.busca_status(id))
 
     if type(response) != str:
         return jsonify(response),200
@@ -63,7 +67,9 @@ def maquinas_status():
 @app.route('/maquinas/<int:id>', methods=['GET','PUT','DELETE'])
 def maquina_status(id):
     if request.method == 'GET':
-        response = mq.exibe_maquinas(id)
+        response = []
+        response.append(cadastro = cd.exibe_maquinas(id))
+        response.append(status = st.busca_status(id))
         
         if type(response) != str:
             return jsonify(response),200
@@ -73,7 +79,8 @@ def maquina_status(id):
     elif request.method == 'PUT':
 
         data = request.get_json()
-        response = mq.atualiza_maquina(id, data)
+        # response = mq.atualiza_maquina(id, data)
+        response = st.atualiza_maquina(id, data)
 
         if type(response) != str:
             if response[0] == 0:
@@ -85,7 +92,9 @@ def maquina_status(id):
             return jsonify(response),500
 
     elif request.method == 'DELETE':
-        response = mq.inativa_maquina(id)
+        
+        # response = mq.inativa_maquina(id)
+        response = cd.inativa_maquina(id)
 
         if type(response) != str:
             if response[0] == 0:
@@ -107,16 +116,20 @@ def monitor_inactivity():
             if last_update[client_id] != 'I':
                 if current_time - last_time > TIMEOUT:
                     print(f'Cliente {client_id} atingiu o timeout. Desconectando...')
-                    mq.inativa_maquina(client_id)
+                    cd.inativa_maquina(client_id)
                     last_update[client_id] = 'I'
         time.sleep(15)
 
 
 def load_api():
-    if not path.exists('/'.join(database_path.split('/')[:3]) + '/'):
-        mkdir('/'.join(database_path.split('/')[:3]) + '/')
+    # if not path.exists('/'.join(database_path.split('/')[:3]) + '/'):
+    #     mkdir('/'.join(database_path.split('/')[:3]) + '/')
 
-    inativos = mq.ultimo_id()
+    load.load_database()
+
+    id = cd.ultimo_id()
+    # print(id)
+    inativos = (id) if id != None else 0
 
     for i in range(inativos):
         clients.append(i)
