@@ -1,4 +1,14 @@
-import Database from '../database/database.js'
+import prisma from '../database/database.js'
+
+async function create({infos}) {
+    const MaquinaCadastrada = await prisma.host.create({
+        data: {
+            infos['ip'],
+            infos['nome'],
+
+        }
+    })
+}
 
 async function cadastraMaquina(infos) {
 
