@@ -1,8 +1,8 @@
 old_*
 test_*
 test*
-*.db
-*.sqlite
+*db*
+api
 configs
 node_modules
 __pycache__

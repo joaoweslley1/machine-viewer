@@ -1,5 +1,10 @@
-@server = http://192.168.100.36:5900
+# @server = http://192.168.100.36:5900
+@server = http://172.16.0.18:5900
 @id = {{createMaquina.response.body.$.id}}
+
+# @createdHostId = {{createHost.response.body.$.id}}
+# @createdUserId = {{createdUser.response.body.$.id}}
+@token = {{singin.response.body.$.token}}
 
 ### cadastrarMaquina
 # @name createMaquina
@@ -40,3 +45,53 @@ Content-Type: application/json
 
 ### Deletar Maquina
 DELETE {{server}}/maquinas/{{id}}
+Authorization: bearer {{token}}
+
+### Criar Usuario
+POST {{server}}/usuarios
+Content-Type: application/json
+
+{
+    "nome": "João Weslley",
+    "username": "joaoweslley",
+    "email": "joao@localhost",
+    "senha": "12345678"
+}
+
+### Checa Usuarios
+GET {{server}}/usuarios/
+
+### Deleta Usuarios
+DELETE {{server}}/usuarios/3
+Authorization: bearer {{token}}
+
+
+### Realizar login
+# @name singin
+POST {{server}}/singin
+Content-Type: application/json
+
+{
+    "email": "joao@localhost",
+    "senha": "12345678"
+}
+
+### Realizar login 2
+# @name singin
+POST {{server}}/singin
+Content-Type: application/json
+
+{
+    "username": "joaoweslley",
+    "senha": "12345678"
+}
+
+### Realizar login admin
+# @name singin
+POST {{server}}/singin
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "senha": "admin"
+}

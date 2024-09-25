@@ -1,7 +1,12 @@
+import jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
+
 import express from 'express';
 import cadastro from './models/cadastro.js';
 import status from './models/status.js';
 import usuarios from './models/usuarios.js';
+
+import { isAuthenticated } from './middleware/auth.js';
 
 const router = express.Router();
 
@@ -65,12 +70,21 @@ router.put('/maquinas/:id', async (req, res) => {
 
 
 // DELETE
-router.delete('/maquinas/:id', async (req, res) => {
+router.delete('/maquinas/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
 
+    // console.log(req.userId);
+    const userInfos = await usuarios.mostraUsuario(req.userId);
+    const userGroup = userInfos[0]["id_grupo"];
+    // console.log(userGroup);
+
     if (id != undefined) {
-        const result = await cadastro.inativaMaquina(id);
-        res.status(204).json(result);
+        if (userGroup === 1 || userGroup === 2) {
+            const result = await cadastro.inativaMaquina(id);
+            res.status(204).json(result);
+        } else {
+            res.status(403).json({'message': "Usuário sem permissão para remover máquina."})
+        }
     } else {
         res.status(400).json({'response' : 'Bad request'});
     }
@@ -84,6 +98,7 @@ router.post('/usuarios', async (req, res) => {
     const result = await usuarios.cadastraUsuario(data);
 
     if (result) {
+        delete result.senha;
         res.status(201).json({'message': "Usuário cadastrado!", "response": result})
     } else {
         res.status(400).json({'message' : "Ocorreu um erro com a requisição:", "response": result})
@@ -123,16 +138,58 @@ router.get('/usuarios/:id', async (req, res) => {
 //     }
 // })
 
-router.delete('/usuarios/:id', async (req, res) => {
+router.delete('/usuarios/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
 
+    console.log("req.userId");
+    console.log(req.userId);
+    const userInfos = await usuarios.mostraUsuario(req.userId);
+
+    const userGroup = userInfos[0]["id_grupo"];
+
     if (id) {
-        const result = await usuarios.removeUsuario(id);
-        
-        res.status(204).json(result);
+        if (userGroup == 1){
+            const result = await usuarios.removeUsuario(id);    
+            res.status(204).json(result);
+        } else {
+            res.status(403).json({'message': "Usuário sem permissão para remover usuário."})
+        }
+
     } else {
         res.status(400).json({"response": "Bad request"});
     }
 })
+
+
+router.post('/singin', async(req, res) => {
+    try {
+
+        const { email, username, senha: senha_enviada } = req.body;
+
+        const usuario = await usuarios.pesquisaUsuario(email, username);
+
+        console.log(usuario);
+
+        if (usuario != 0) {
+            const { id: userId, senha: senha } = usuario;
+
+            const match = await bcrypt.compare(senha_enviada, senha);
+            
+            if (match) {
+                const token = jwt.sign(
+                    { userId },
+                    process.env.JWT_SECRET,
+                    { expiresIn: 3600 }
+                );
+
+                return res.json({ auth: true, token });
+            } else {
+                throw new Error('User not found');
+            }
+        }
+    } catch (error) {
+        res.status(401).json({ error: 'Senha incorreta' });
+    }
+});
 
 export default router;

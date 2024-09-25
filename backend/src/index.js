@@ -1,4 +1,5 @@
 import 'express-async-errors';
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import morgan from 'morgan';
@@ -16,7 +17,8 @@ let serverAddress;
 rl.question('Digite o endereço IP do servidor: ', (ip) => {
 
     if (!ip) {
-        serverAddress = '127.0.0.1'
+        // serverAddress = '127.0.0.1'
+        serverAddress = '172.16.0.18'
     } else {
         serverAddress = ip;
     }
@@ -56,7 +58,3 @@ rl.question('Digite o endereço IP do servidor: ', (ip) => {
 
     rl.close();
 })
-
-
-
-// export default server;
