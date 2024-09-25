@@ -5,15 +5,20 @@ async function cadastraUsuario(infos) {
     const username =  infos['username'];
     const email = infos['email'];
     const senha = infos['senha'];
-    const id_grupo = infos['id_grupo'];
+    let id_grupo = infos['id_grupo'];
+
+    if (!id_grupo) {
+        id_grupo = "2";
+    }
 
     const usuarioCriado = await prisma.usuarios.create({
+        
         data: {
             nome: nome,
             username: username,
             email: email,
             senha: senha,
-            id_grupo: id_grupo
+            id_grupo: parseInt(id_grupo),
         },
     });
 

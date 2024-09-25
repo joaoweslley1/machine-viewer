@@ -1,6 +1,7 @@
 import express from 'express';
 import cadastro from './models/cadastro.js';
 import status from './models/status.js';
+import usuarios from './models/usuarios.js';
 
 const router = express.Router();
 
@@ -74,6 +75,64 @@ router.delete('/maquinas/:id', async (req, res) => {
         res.status(400).json({'response' : 'Bad request'});
     }
 
+})
+
+
+router.post('/usuarios', async (req, res) => {
+    const data = req.body;
+
+    const result = await usuarios.cadastraUsuario(data);
+
+    if (result) {
+        res.status(201).json({'message': "Usuário cadastrado!", "response": result})
+    } else {
+        res.status(400).json({'message' : "Ocorreu um erro com a requisição:", "response": result})
+    }
+})
+
+router.get('/usuarios/', async (req, res) => {
+    const { id } = req.query;
+
+    const response = [];
+    response.push(await usuarios.mostraUsuario(id));
+
+    res.status(200).json(response);
+})
+
+router.get('/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+
+    const response = [];
+    response.push(await usuarios.mostraUsuario(id));
+
+    res.status(200).json(response);
+})
+
+// router.put('usuarios/:id', async (req, res) => {
+//     const { id } = req.params;
+//     const data = req.body;
+
+//     if (id && data) {
+//         const result = await usuarios.atualizarCadastro();
+
+//         console.group(result);
+        
+//         res.status(200).json(result);
+//     } else {
+//         res.status(400).json({'response' : 'Bad request'});
+//     }
+// })
+
+router.delete('/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+
+    if (id) {
+        const result = await usuarios.removeUsuario(id);
+        
+        res.status(204).json(result);
+    } else {
+        res.status(400).json({"response": "Bad request"});
+    }
 })
 
 export default router;

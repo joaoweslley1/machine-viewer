@@ -24,7 +24,7 @@ async function mostraCadastros(id) {
     if (id) {
         maquinas.push(await prisma.maquina_cadastro.findUnique({
             where: {
-                id : parseInt(id),
+                id: parseInt(id),
             },
         }))
     } else {
