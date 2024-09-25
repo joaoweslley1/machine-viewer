@@ -50,6 +50,6 @@ model usuarios {
   username String
   email String
   senha String
-  id_grupo Int @unique
   grupo grupos @relation(fields: [id_grupo], references: [id], onDelete: Cascade)
+  id_grupo Int @default(2)
 }
