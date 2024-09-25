@@ -1,2 +1,0 @@
-# TODO
-# implementar as rotas
