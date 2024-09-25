@@ -1,0 +1,55 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// MIGRATION
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model maquina_cadastro {
+  id Int @id @default(autoincrement())
+  ip String
+  alias String
+  so String @default("NULL")
+  situacao String @default("I")
+  status maquina_status[]
+}
+
+model maquina_status {
+  id_cad Int @unique @default(autoincrement())
+  maquina maquina_cadastro  @relation(fields: [id_cad], references: [id], onDelete: Cascade)
+  cputot Float @default(0.0)
+  cpudet String @default("0.0")
+  cputmp Float @default(0.0)
+  memtot Float @default(0.0)
+  memusa Float @default(0.0)
+  swptot Float @default(0.0)
+  swpusa Float @default(0.0)
+  dsktot Float @default(0.0)
+  dskusa Float @default(0.0)
+  dsktmp Float @default(0.0)
+
+  @@id([id_cad])
+}
+
+model grupos {
+  id Int @id @default(autoincrement())
+  nome String
+  usuario usuarios[]
+}
+
+model usuarios {
+  id Int @id @default(autoincrement())
+  nome String
+  username String
+  email String
+  senha String
+  id_grupo Int @unique
+  grupo grupos @relation(fields: [id_grupo], references: [id], onDelete: Cascade)
+}
