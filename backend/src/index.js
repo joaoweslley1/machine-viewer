@@ -18,12 +18,13 @@ rl.question('Digite o endereço IP do servidor: ', (ip) => {
 
     if (!ip) {
         // serverAddress = '127.0.0.1'
-        serverAddress = '172.16.0.18'
+        // serverAddress = '172.16.0.18'
+        serverAddress = '192.168.100.36'
     } else {
         serverAddress = ip;
     }
 
-    fs.writeFile('../../configs/ip_addrs', ip, 'utf-8', (err) => {
+    fs.writeFile('../configs/ip_addrs', serverAddress, 'utf-8', (err) => {
         if (err) {
             console.error(`Erro ao alterar arquivo: ${err}`);
             return;

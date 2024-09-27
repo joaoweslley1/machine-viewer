@@ -18,32 +18,6 @@ async function consultaStatus(id) {
 }
 
 
-// async function consultaStatus(id) {
-
-//     const db = await Database.connect();
-
-//     let data; 
-
-//     if (id != undefined) {
-//         const consultaPorIdSql = `
-//             SELECT
-//             *
-//             FROM maquina_status
-//             WHERE id = ?
-//         `
-//         data = await db.all(consultaPorIdSql, [id,]);
-
-//     } else {
-//         const consultaGeralSql = `
-//             SELECT
-//             *
-//             FROM maquina_status
-//         `
-//         data = await db.all(consultaGeralSql);
-//     }
-
-//     return data;
-// }
 
 async function atualizarStatus(id, infos) {
     const cputot = parseFloat(infos['cputot']);

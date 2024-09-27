@@ -1,5 +1,5 @@
 # @server = http://192.168.100.36:5900
-@server = http://172.16.0.18:5900
+@server = http://192.168.100.36:5900
 @id = {{createMaquina.response.body.$.id}}
 
 # @createdHostId = {{createHost.response.body.$.id}}

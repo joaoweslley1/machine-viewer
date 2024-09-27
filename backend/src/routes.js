@@ -60,8 +60,6 @@ router.put('/maquinas/:id', async (req, res) => {
     if (id && data) {
         const result = await status.atualizarStatus(id, data);
 
-        console.group(result);
-        
         res.status(200).json(result);
     } else {
         res.status(400).json({'response' : 'Bad request'});
@@ -73,10 +71,8 @@ router.put('/maquinas/:id', async (req, res) => {
 router.delete('/maquinas/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
 
-    // console.log(req.userId);
     const userInfos = await usuarios.mostraUsuario(req.userId);
     const userGroup = userInfos[0]["id_grupo"];
-    // console.log(userGroup);
 
     if (id != undefined) {
         if (userGroup === 1 || userGroup === 2) {
@@ -123,26 +119,9 @@ router.get('/usuarios/:id', async (req, res) => {
     res.status(200).json(response);
 })
 
-// router.put('usuarios/:id', async (req, res) => {
-//     const { id } = req.params;
-//     const data = req.body;
-
-//     if (id && data) {
-//         const result = await usuarios.atualizarCadastro();
-
-//         console.group(result);
-        
-//         res.status(200).json(result);
-//     } else {
-//         res.status(400).json({'response' : 'Bad request'});
-//     }
-// })
-
 router.delete('/usuarios/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
 
-    console.log("req.userId");
-    console.log(req.userId);
     const userInfos = await usuarios.mostraUsuario(req.userId);
 
     const userGroup = userInfos[0]["id_grupo"];
@@ -168,8 +147,6 @@ router.post('/singin', async(req, res) => {
 
         const usuario = await usuarios.pesquisaUsuario(email, username);
 
-        console.log(usuario);
-
         if (usuario != 0) {
             const { id: userId, senha: senha } = usuario;
 
@@ -182,7 +159,7 @@ router.post('/singin', async(req, res) => {
                     { expiresIn: 3600 }
                 );
 
-                return res.json({ auth: true, token });
+                return res.status(200).json({ auth: true, token });
             } else {
                 throw new Error('User not found');
             }
