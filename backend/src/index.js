@@ -26,7 +26,7 @@ try {
 rl.question('Digite o endereço IP do servidor: ', (ip) => {
 
     if (!ip) {
-        serverAddress = '192.168.100.36'
+        serverAddress = '127.0.0.1'
     } else {
         serverAddress = ip;
     }
