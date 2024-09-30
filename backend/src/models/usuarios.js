@@ -4,30 +4,33 @@ import bcrypt from "bcrypt";
 const saltRounds = Number(process.env.BCRYPT_SALT);
 
 async function cadastraUsuario(infos) {
-    const nome =  infos['nome'];
-    const username =  infos['username'];
-    const email = infos['email'];
-    const senha = infos['senha'];
-    let id_grupo = infos['id_grupo'];
+    try {const nome =  infos['nome'];
+        const username =  infos['username'];
+        const email = infos['email'];
+        const senha = infos['senha'];
+        let id_grupo = infos['id_grupo'];
 
-    const senha_encriptada = await bcrypt.hash(senha, saltRounds);
+        const senha_encriptada = await bcrypt.hash(senha, saltRounds);
 
-    if (!id_grupo) {
-        id_grupo = "2";
+        if (!id_grupo) {
+            id_grupo = "2";
+        }
+
+        const usuarioCriado = await prisma.usuarios.create({   
+            data: {
+                nome: nome,
+                username: username,
+                email: email,
+                senha: senha_encriptada,
+                id_grupo: parseInt(id_grupo),
+            },
+        });
+
+        return {'status': 0, 'message': usuarioCriado};
     }
-
-    const usuarioCriado = await prisma.usuarios.create({
-        
-        data: {
-            nome: nome,
-            username: username,
-            email: email,
-            senha: senha_encriptada,
-            id_grupo: parseInt(id_grupo),
-        },
-    });
-
-    return usuarioCriado;
+    catch (e) {
+        return {'status': 1, 'message': 'Ocorreu um erro.'}
+    }
 }
 
 async function mostraUsuario(id) {
@@ -84,4 +87,40 @@ async function pesquisaUsuario(email, username) {
 
 }
 
-export default { cadastraUsuario, mostraUsuario, removeUsuario, pesquisaUsuario };
+async function atualizaCadastro(id, data) {
+    const nome = (data["nome"]) ? data["nome"] : null;
+    const username = (data["username"]) ? data["username"] : null;
+    const email = (data["email"]) ? data["email"] : null;
+    const senha = (data["novaSenha"]) ? data["novaSenha"] : null;
+    const senha_encriptada = (senha) ? await bcrypt.hash(senha, saltRounds) : null;
+
+
+    console.log(id);
+    
+    if (nome) {
+        await prisma.usuarios.update({
+            where: {id: parseInt(id)},
+            data: {nome: nome}
+        })
+    }
+    if (username) {
+        await prisma.usuarios.update({
+            where: {id: parseInt(id)},
+            data: {username: username}
+        })
+    }
+    if (email) {
+        await prisma.usuarios.update({
+            where: {id: parseInt(id)},
+            data: {email: email}
+        })
+    }
+    if (senha) {
+        await prisma.usuarios.update({
+            where: {id: parseInt(id)},
+            data: {senha: senha_encriptada}
+        })
+    }
+}
+
+export default { cadastraUsuario, atualizaCadastro, mostraUsuario, removeUsuario, pesquisaUsuario };

@@ -1,3 +1,5 @@
+import cadastro from './models/cadastro.js'
+
 import 'express-async-errors';
 import 'dotenv/config';
 import express from 'express';
@@ -14,11 +16,16 @@ const rl = readline.createInterface({
 
 let serverAddress;
 
+try {
+    await cadastro.desativaMaquinas();
+    console.log('Maquinas pendentes desabilitadas.')
+} catch (e) {
+    console.log(`Ocorreu um erro: ${e}.`)
+} 
+
 rl.question('Digite o endereço IP do servidor: ', (ip) => {
 
     if (!ip) {
-        // serverAddress = '127.0.0.1'
-        // serverAddress = '172.16.0.18'
         serverAddress = '192.168.100.36'
     } else {
         serverAddress = ip;
@@ -43,7 +50,7 @@ rl.question('Digite o endereço IP do servidor: ', (ip) => {
         cors({
             origin: '*',
             methods: 'GET,PUT,POST,DELETE',
-            allowedHeaders: ['Content-Type'],
+            allowedHeaders: ['Content-Type', 'Authorization'],
             credentials: true,
             preflightContinue: false,
         })

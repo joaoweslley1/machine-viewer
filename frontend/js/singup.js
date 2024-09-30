@@ -1,5 +1,7 @@
 import { getAddress } from "./services/address.js";
 
+import Auth from "./services/auth.js";
+
 const serverAddress = await getAddress();
 
 const passwordField = document.getElementById("senha");
@@ -49,17 +51,20 @@ async function register(address, userInfo) {
         })
     })
 
-    console.log(await response.json());
+    const res = await response.json();
+    console.log(res);
 
-    window.location.href = '/frontend/pages/singin.html';
-
+    if (res["status"] === 1) {
+        alert('Ocorreu um erro com a requisição: Nome de usuário e/ou senha já cadastrados!')
+    } else {
+        window.location.href = '/frontend/pages/singin.html';
+    }
 }
 
-console.log()
-passwordField.addEventListener('input', () => validatePassword(passwordField.value, confPasswordField.value))
-confPasswordField.addEventListener('input', () => validatePassword(passwordField.value, confPasswordField.value))
+passwordField.addEventListener('input', () => validatePassword(passwordField.value, confPasswordField.value));
+confPasswordField.addEventListener('input', () => validatePassword(passwordField.value, confPasswordField.value));
 
-usernameField.addEventListener('input', () => validateUsername(usernameField.value))
+usernameField.addEventListener('input', () => validateUsername(usernameField.value));
 
 document.getElementById('form').addEventListener('submit', async function (event) {
     if (!validatePassword(passwordField.value, confPasswordField.value) || !validatePassword(passwordField.value, confPasswordField.value)) {

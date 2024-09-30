@@ -60,7 +60,7 @@ async function login(address, userInfo) {
 
     const resData = await res.json();
 
-    Auth.singin(resData['token']);
+    Auth.singin(resData['token'], resData['nome']);
     
 }
 

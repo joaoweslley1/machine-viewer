@@ -1,0 +1,63 @@
+.header {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    background-color: rgb(20, 20, 20);
+    color: white;
+    box-sizing: border-box;
+    padding: 20px;
+}
+.icones {
+    display: flex;
+    gap: 15px;
+    font-size: 30px;
+}
+
+#menu {
+    background-color: #f9f9f9;
+}
+
+body {
+    background-color: rgb(25, 25, 25);
+}
+
+.device-header {
+    display: flex;
+    width: 100%;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: rgb(25, 25, 25);
+    color: white;
+}
+
+.detailing-body {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+    background-color: rgb(25, 25, 25);
+    color: white;
+}
+
+.container-fluid{
+    --bs-gutter-y: calc(1rem + 1rem + 250px);
+    width: 100%;
+    height: calc(100vh - var(--bs-gutter-y));
+}
+.container {
+    max-width: 95%;
+}
+
+.card-body {
+    background-color: rgb(36, 36, 36);
+    color: rgb(211, 211, 211);
+    border-radius: 5px;
+}
+
+button {
+    background-color: rgb(78, 78, 78);
+    color: rgb(255, 255, 255);
+}

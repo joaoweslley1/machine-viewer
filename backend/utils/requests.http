@@ -12,7 +12,7 @@ POST {{server}}/maquinas
 Content-Type: application/json
 
 {
-    "nome": "teste1",
+    "nome": "teste2",
     "so": "windows"
 }
 

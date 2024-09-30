@@ -100,9 +100,10 @@ def client_send(id):
         sleep(1)
         try:
             message = get_informations()
+            print(message)
             response = requests.put(f'{URL}/maquinas/{id}', json=message)
 
-            if response.status_code not in [200, 201]:
+            if response.status_code not in [200, 201, 204]:
                 print(response.json())
                 break
         
