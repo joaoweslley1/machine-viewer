@@ -31,6 +31,10 @@ rl.question('Digite o endereço IP do servidor: ', (ip) => {
         serverAddress = ip;
     }
 
+    if (!fs.existsSync('../configs/')) {
+        fs.mkdirSync('../configs/')
+    }
+
     fs.writeFile('../configs/ip_addrs', serverAddress, 'utf-8', (err) => {
         if (err) {
             console.error(`Erro ao alterar arquivo: ${err}`);

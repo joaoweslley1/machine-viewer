@@ -4,8 +4,10 @@ from time import sleep
 import platform
 
 alias = input('Escolha um apelido: ')
-# alias = 'teste'
 server_ip = input('Digite o endereço IP do servidor: ')
+
+if alias == '':
+    alias = platform.node()
 
 if server_ip == '':
     server_ip = '127.0.0.1'

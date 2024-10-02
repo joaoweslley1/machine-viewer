@@ -2,11 +2,11 @@
 
 ---
 
-Repostório dedicado ao código do **Machine Viewer**, uma aplicação para administração e análise de máquinas em rede.
+Repostório dedicado ao código do **Machine Viewer**, uma aplicação para administração e análise do status de máquinas em rede.
 
 ## Visão geral
 
-O Machine Viewer é uma aplicação que tem por objetivo permitir a visualização do status de máquinas em rede. Ele funciona utiliza uma API em express que gerencia as requisições e um cliente em Python, que também está disponibilizado no repositório.
+O Machine Viewer é uma aplicação que permite a visualização do status de máquinas em rede. Utilizando uma API em express que gerencia as requisições e um cliente em Python, também disponibilizado no repositório.
 
 ## Estrutura do projeto
 
@@ -28,19 +28,18 @@ machine-viewer/
 └── README.md
 ```
 
-## Estrutura do banco
+## Funcionamento da API
 
-<img src="./frontend/public/img/ERD.svg" width="500px" alt="ERD">
+Ao executar a API, irá armazenar o endereço IP passado pelo usuário (*127.0.0.1 caso o usuário não escolha nenhum*) no arquivo de configuração `machine-viewer/backend/config/ip_addr`, esse arquivo será acessado pelo front-end para obter o endereço IP que a API está ouvindo.
+A API, então, ficará escutando na porta 5900 requisições do tipo `POST`, `GET`, `PUT` e `DELETE` e ela tratará o cadastro de máquinas e usuários, além de responder as requisições, conforme necessário.
 
-## Funcionamento
+## Funcionamento do Cliente
 
-Ao executar a API, irá armazenar o endereço IP escolhido pelo usuário (*127.0.0.1 caso o usuário não escolha nenhum*) em um arquivo de configuração `machine-viewer/backend/config/ip_addr`, esse arquivo será acessado pelo front-end para realizar as consultas;
-A API, então, ficará escutando na porta 5900 requisições do tipo `POST`, `GET`, `PUT` e `DELETE` e ela tratará cadastro de máquinas e usuários.
-O cliente, por sua vez, irá pedir um endereço IP para conectar-se (*usando o 127.0.0.1 caso não seja passado nenhum*), ele então enviará os dados de cadastro antes de começar a enviar os dados do status da máquina.
+O cliente irá pedir ao usuário um apelido para seu cadastro e o endereço IP da API (*usará o 127.0.0.1 caso não seja passado nenhum*), ele então enviará os dados de cadastro e em seguida começa a coletar os dados utilizando a biblioteca do Python psutil e a enviá-los para a API.
 
 ## Informações coletadas
 
-O cliente coletará e enviará para a API as seguintes informações utilizando a biblioteca do Python psutil:
+O cliente coletará e enviará para a API as seguintes informações:
 
 * Sistema operacional;
 * Endereço IP da máquina;
@@ -71,13 +70,16 @@ Segue a versão requisitada do Node.js e do Python, juntamente com as dependênc
 
 Para executar a **API** é necessário siga os seguintes passos:
 
-1. Clone o [repositório](https://github.com/joaoweslley1/machine-viewer.git) e instale as dependências;
+1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git) é necessário que as dependências sejam instaladas;
 2. Navegue até o diretório `machine-viewer/backend/src/` e execute o comando `node index.js`;
+3. Insira o endereço IP que quer que sua API escute (caso deixe vazio, ele utilizará o 127.0.0.1).
 
 Para o **cliente**:
 
-1. Clone o [repositório](https://github.com/joaoweslley1/machine-viewer.git) e instale as dependências;
-2. Execute o comando `python3 client.py` no diretório `machine-viewer/backend/clients/`.
+1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git) certifique-se que as [dependências](backend/clients/requirements.txt) estejam instaladas;
+2. Navegue até o diretório `machine-viewer/backend/clients/` e execute o comando `python3 client.py`.
+3. Digite um apelido para sua máquina ser cadastrada no banco (caso deixe vazio, ele usará o nome de sua máquina na rede).
+4. Insira o endereço IP que a sua API está rodando (se vazio, ele utilizará o 127.0.0.1).
 
 ## Capturas de tela
 
