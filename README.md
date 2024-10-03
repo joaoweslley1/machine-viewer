@@ -70,16 +70,20 @@ Segue a versão requisitada do Node.js e do Python, juntamente com as dependênc
 
 Para executar a **API** é necessário siga os seguintes passos:
 
-1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git) é necessário que as dependências sejam instaladas;
-2. Navegue até o diretório `machine-viewer/backend/src/` e execute o comando `node index.js`;
-3. Insira o endereço IP que quer que sua API escute (caso deixe vazio, ele utilizará o 127.0.0.1).
+1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git), navegue até o diretório `/backend/src/` com o comando `cd machine-viewer/backend/src/`;
+2. Instale as dependências com o comando `npx install`;
+3. Faça uma cópia do arquivo `.env.example`, altere conforme o necessário e renomeie a cópia para `.env`;
+4. Gere o banco de dados com o comando `npx prisma migrate dev`;
+5. Inicie a API com comando `node index.js`;
+6. Insira o endereço IP que quer que sua API escute (caso deixe vazio, ele utilizará o 127.0.0.1).
 
 Para o **cliente**:
 
-1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git) certifique-se que as [dependências](backend/clients/requirements.txt) estejam instaladas;
-2. Navegue até o diretório `machine-viewer/backend/clients/` e execute o comando `python3 client.py`.
-3. Digite um apelido para sua máquina ser cadastrada no banco (caso deixe vazio, ele usará o nome de sua máquina na rede).
-4. Insira o endereço IP que a sua API está rodando (se vazio, ele utilizará o 127.0.0.1).
+1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git), navegue até o diretório `/backend/clients` com o comando `cd machine-viewer/backend/clients;
+2. Instale as dependências com o comando `pip install -r requirements.txt`;
+3. Inicie o cliente com o comando `python3 client.py`.
+4. Digite um apelido para sua máquina ser cadastrada no banco (caso deixe vazio, ele usará o nome de sua máquina na rede).
+5. Insira o endereço IP que a sua API está rodando (se vazio, ele utilizará o 127.0.0.1).
 
 ## Capturas de tela
 
