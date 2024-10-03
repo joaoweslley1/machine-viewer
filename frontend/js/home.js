@@ -86,11 +86,11 @@ function _createDeviceRow(cad, status, ip, table) {
 
     const diskTempCell = newRow.insertCell(5);
     diskTempCell.classList.add('align-middle');
-    diskTempCell.textContent = status.dsktmp !== 'Indisponível' ? status.dsktmp + '°C' : status.dsktmp;
+    diskTempCell.textContent = parseFloat(status.dsktmp) !== -1.0 ? status.dsktmp + '°C' : 'Indisponível';
 
     const cpuTempCell = newRow.insertCell(6);
     cpuTempCell.classList.add('align-middle');
-    cpuTempCell.textContent = status.cputmp !== 'Indisponível' ? status.cputmp + '°C' : status.cputmp;
+    cpuTempCell.textContent = parseFloat(status.cputmp) !== -1.0 ? status.cputmp + '°C' : 'Indisponível';
 
     const  situacaoCell = newRow.insertCell(7);
     situacaoCell.classList.add('align-middle');
@@ -140,8 +140,8 @@ function updateTable(table, cad, status) {
     for (var i = 0, row; row = table.rows[i]; i++) {
         row.cells[3].textContent = status[i].cputot + '%';
         row.cells[4].textContent = (parseFloat(status[i].memusa) * 100 / parseFloat(status[i].memtot)).toFixed(1) + '%';
-        row.cells[5].textContent = status[i].dsktmp !== 'Indisponível' ? status[i].dsktmp + '°C' : 'Indisponível';
-        row.cells[6].textContent = status[i].cputmp !== 'Indisponível' ? status[i].cputmp + '°C' : 'Indisponível';
+        row.cells[5].textContent = parseFloat(status[i].dsktmp) !== -1.0 ? status[i].dsktmp + '°C' : 'Indisponível';
+        row.cells[6].textContent = parseFloat(status[i].cputmp) !== -1.0 ? status[i].cputmp + '°C' : 'Indisponível';
         row.cells[7].textContent = cadAtivos[i].situacao === 'A' ? 'Ativa' : 'Inativa';
     }
 }

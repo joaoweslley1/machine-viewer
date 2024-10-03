@@ -196,8 +196,8 @@ function updatePage(buttonClicked, header, body, cadastro, estado) {
     const cpuTemp = header.querySelector('#cpu-temp');
     const dskTemp = header.querySelector('#dsk-temp');
 
-    cpuTemp.textContent = status.cputmp !== 'Indisponível' ? 'CPU: ' + status.cputmp + '°C' : 'Indisponível';
-    dskTemp.textContent = status.dsktmp !== 'Indisponível' ? 'DISK: ' + status.dsktmp + '°C' : 'Indisponível';
+    cpuTemp.textContent = parseFloat(status.cputmp) !== -1.0 ? 'CPU: ' + status.cputmp + '°C' : 'Indisponível';
+    dskTemp.textContent = parseFloat(status.dsktmp) !== -1.0 ? 'DISK: ' + status.dsktmp + '°C' : 'Indisponível';
 
     if (cadastro.situacao === 'A') {
         statusLabel.textContent = 'Ativa';

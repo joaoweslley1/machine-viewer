@@ -29,47 +29,47 @@ def get_informations():
     try:
         cputot = psutil.cpu_percent(interval=0)
     except:
-        cputot = 'Indisponível'
+        cputot = -1.0
     try:
         cpudet = ';'.join([str(c) for c in psutil.cpu_percent(interval=0,percpu=True)])
     except:
-        cpudet = 'Indisponível'
+        cpudet = '-1.0'
     try:
         cputmp = psutil.sensors_temperatures()["coretemp"][0][1]
     except:
-        cputmp = 'Indisponível'
+        cputmp = -1.0
     try:
         memtot = round(psutil.virtual_memory().total/(1024**3),2)
     except:
-        memtot = 'Indisponível'
+        memtot = -1.0
     try:
         memusa = round(psutil.virtual_memory().used/(1024**3),2)
     except:
-        memusa = 'Indisponível'
+        memusa = -1.0
     try:
         swptot = round(psutil.swap_memory().total/(1024**3),2)
     except:
-        swptot = 'Indisponível'
+        swptot = -1.0
     try:
         swpusa = round(psutil.swap_memory().used/(1024**3),2)
     except:
-        swpusa = 'Indisponível'
+        swpusa = -1.0
     try:
         memusa = round(psutil.virtual_memory().used/(1024**3),2)
     except:
-        memusa = 'Indisponível'
+        memusa = -1.0
     try:
         dsktmp = psutil.sensors_temperatures()["nvme"][0][1]
     except:
-        dsktmp = 'Indisponível'
+        dsktmp = -1.0
     try:
         dsktot = round(psutil.disk_usage("/")[0]/(1024**3),2)
     except:
-        dsktot = 'Indisponível'
+        dsktot = -1.0
     try:
         dskusa = round(psutil.disk_usage("/")[1]/(1024**3),2)
     except:
-        dskusa = 'Indisponível'
+        dskusa = -1.0
 
     message = {
         'cputot': cputot,
