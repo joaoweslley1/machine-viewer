@@ -71,7 +71,7 @@ Segue a versão requisitada do Node.js e do Python, juntamente com as dependênc
 Para executar a **API** é necessário siga os seguintes passos:
 
 1. Após clonar o [repositório](https://github.com/joaoweslley1/machine-viewer.git), navegue até o diretório `/backend/src/` com o comando `cd machine-viewer/backend/src/`;
-2. Instale as dependências com o comando `npx install`;
+2. Instale as dependências com o comando `npm install`;
 3. Faça uma cópia do arquivo `.env.example`, altere conforme o necessário e renomeie a cópia para `.env`;
 4. Gere o banco de dados com o comando `npx prisma migrate dev`;
 5. Inicie a API com comando `node index.js`;
